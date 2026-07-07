@@ -318,13 +318,16 @@ button {
 }
 
 .nav-button:hover,
-.pin-button:hover,
-.settings-button:hover,
-.today-month-button:hover,
 .back-arrow:hover,
 .task-add-button:hover,
 .task-delete:hover {
   background: rgba(196, 92, 62, 0.1);
+}
+
+.pin-button:hover,
+.settings-button:hover,
+.today-month-button:hover {
+  background: transparent;
 }
 
 .pin-button,
@@ -341,6 +344,9 @@ button {
   flex-shrink: 0;
   padding: 0;
   line-height: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .title-action-icon {
@@ -357,14 +363,12 @@ button {
 
 .today-month-icon {
   object-fit: contain;
-  border-radius: 4px;
   pointer-events: none;
+  background: transparent;
 }
 
 .pin-button.floating {
-  background: rgba(196, 92, 62, 0.22);
   color: var(--accent);
-  box-shadow: inset 0 0 0 1px rgba(196, 92, 62, 0.28);
 }
 
 .pin-button.floating .pin-icon {
@@ -374,7 +378,6 @@ button {
 }
 
 .pin-button.desktop {
-  background: rgba(122, 116, 104, 0.1);
   color: #9a9488;
 }
 
@@ -384,13 +387,8 @@ button {
   filter: grayscale(1);
 }
 
-.settings-button.active {
-  background: rgba(196, 92, 62, 0.14);
-  color: var(--accent);
-}
-
+.settings-button.active,
 .today-month-button.active {
-  background: rgba(196, 92, 62, 0.14);
   color: var(--accent);
 }
 

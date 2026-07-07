@@ -74,8 +74,34 @@ def crop_icon_square(image: Image.Image) -> Image.Image:
     return cropped.resize((1024, 1024), Image.Resampling.LANCZOS)
 
 
+def remove_background(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    rgb = rgba.convert("RGB")
+    bg = background_color(rgb)
+    pixels = []
+    for r, g, b, _ in rgba.getdata():
+        dist = ((r - bg[0]) ** 2 + (g - bg[1]) ** 2 + (b - bg[2]) ** 2) ** 0.5
+        if dist <= 15:
+            alpha = 0
+        elif dist <= 34:
+            # 阴影/边缘：半透明，避免在 UI 上形成实心方框
+            alpha = int(160 * (dist - 15) / 19)
+        elif dist <= 50:
+            alpha = int(160 + 95 * (dist - 34) / 16)
+        else:
+            alpha = 255
+        pixels.append((r, g, b, alpha))
+    rgba.putdata(pixels)
+    return rgba
+
+
+def export_favicon(source: Image.Image) -> None:
+    favicon = remove_background(source).resize((128, 128), Image.Resampling.LANCZOS)
+    favicon.save(PROJECT / "public" / "favicon.png", format="PNG", optimize=True)
+
+
 def export_tray(source: Image.Image) -> None:
-    tray = source.resize((32, 32), Image.Resampling.LANCZOS)
+    tray = remove_background(source).resize((32, 32), Image.Resampling.LANCZOS)
     OUT_TRAY.parent.mkdir(parents=True, exist_ok=True)
     tray.save(OUT_TRAY, format="PNG", optimize=True)
 
@@ -87,6 +113,22 @@ def run_tauri_icon() -> None:
         check=True,
         shell=True,
     )
+    android_bg = (
+        PROJECT
+        / "src-tauri"
+        / "icons"
+        / "android"
+        / "values"
+        / "ic_launcher_background.xml"
+    )
+    android_bg.write_text(
+        """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="ic_launcher_background">#00000000</color>
+</resources>
+""",
+        encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -96,17 +138,16 @@ def main() -> None:
         shutil.copy2(original, stored)
 
     image = Image.open(stored).convert("RGBA")
-    icon = crop_icon_square(image)
+    icon = remove_background(crop_icon_square(image))
     icon.save(OUT_SOURCE, format="PNG", optimize=True)
     export_tray(icon)
-
-    favicon = PROJECT / "public" / "favicon.png"
-    shutil.copy2(OUT_SOURCE, favicon)
+    export_favicon(icon)
 
     run_tauri_icon()
     print(f"原图: {stored}")
-    print(f"已导出: {OUT_SOURCE} (1024x1024)")
+    print(f"已导出: {OUT_SOURCE} (1024x1024, 透明背景)")
     print(f"已导出: {OUT_TRAY}")
+    print(f"已导出: {PROJECT / 'public' / 'favicon.png'} (128x128, 透明背景)")
     print("已生成 src-tauri/icons/ 全套图标")
 
 
