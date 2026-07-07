@@ -1,0 +1,31 @@
+{
+  "name": "desktop-calendar-widget",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "build:windows": "scripts\\build-windows.bat"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "date-fns": "^4.4.0",
+    "lunar-javascript": "^1.7.7",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  }
+}
