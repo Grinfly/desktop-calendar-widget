@@ -8,6 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.1-blue?style=flat-square)](./src/lib/version.ts)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square)](#)
+[![GitHub](https://img.shields.io/badge/GitHub-Grinfly%2Fdesktop--calendar--widget-181717?style=flat-square&logo=github)](https://github.com/Grinfly/desktop-calendar-widget)
 [![Tauri](https://img.shields.io/badge/Tauri-2-FFC131?style=flat-square&logo=tauri&logoColor=black)](https://tauri.app)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 
@@ -56,7 +57,7 @@ Small, translucent, and pin-able — see the date, lunar calendar, and what you 
 ## Development
 
 ```bash
-git clone https://github.com/<your-username>/desktop-calendar-widget.git
+git clone https://github.com/Grinfly/desktop-calendar-widget.git
 cd desktop-calendar-widget
 npm install
 npm run tauri dev
