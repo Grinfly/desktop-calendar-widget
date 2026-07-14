@@ -37,9 +37,13 @@
 ## 截图
 
 <p align="center">
-  <img src="docs/screenshots/calendar.png" alt="月历视图" width="280" />
-  <img src="docs/screenshots/tasks-color.png" alt="待办列表与行颜色" width="280" />
-  <img src="docs/screenshots/tasks-empty.png" alt="空待办与添加输入" width="280" />
+  <table>
+    <tr>
+      <td align="center"><img src="docs/screenshots/calendar.png" alt="月历视图" width="240" /></td>
+      <td align="center"><img src="docs/screenshots/tasks-color.png" alt="待办列表与行颜色" width="240" /></td>
+      <td align="center"><img src="docs/screenshots/tasks-empty.png" alt="空待办与添加输入" width="240" /></td>
+    </tr>
+  </table>
 </p>
 
 <p align="center">

@@ -37,9 +37,13 @@ Small, translucent, and pin-able — see the date, lunar calendar, and what you 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/calendar.png" alt="Calendar view" width="280" />
-  <img src="docs/screenshots/tasks-color.png" alt="Task list with color picker" width="280" />
-  <img src="docs/screenshots/tasks-empty.png" alt="Empty task list" width="280" />
+  <table>
+    <tr>
+      <td align="center"><img src="docs/screenshots/calendar.png" alt="Calendar view" width="240" /></td>
+      <td align="center"><img src="docs/screenshots/tasks-color.png" alt="Task list with color picker" width="240" /></td>
+      <td align="center"><img src="docs/screenshots/tasks-empty.png" alt="Empty task list" width="240" /></td>
+    </tr>
+  </table>
 </p>
 
 <p align="center">
