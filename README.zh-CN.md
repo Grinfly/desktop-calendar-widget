@@ -36,14 +36,15 @@
 
 ## 截图
 
-> 将截图放入 `docs/screenshots/` 后取消注释：
-
-<!--
 <p align="center">
-  <img src="docs/screenshots/calendar.png" alt="月历视图" width="320" />
-  <img src="docs/screenshots/tasks.png" alt="待办列表" width="320" />
+  <img src="docs/screenshots/calendar.png" alt="月历视图" width="280" />
+  <img src="docs/screenshots/tasks-color.png" alt="待办列表与行颜色" width="280" />
+  <img src="docs/screenshots/tasks-empty.png" alt="空待办与添加输入" width="280" />
 </p>
--->
+
+<p align="center">
+  <sub>月历视图 · 待办与行颜色 · 添加待办</sub>
+</p>
 
 ## 环境要求
 

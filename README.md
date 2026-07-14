@@ -36,14 +36,15 @@ Small, translucent, and pin-able — see the date, lunar calendar, and what you 
 
 ## Screenshots
 
-> Add images to `docs/screenshots/` and uncomment:
-
-<!--
 <p align="center">
-  <img src="docs/screenshots/calendar.png" alt="Calendar view" width="320" />
-  <img src="docs/screenshots/tasks.png" alt="Task list" width="320" />
+  <img src="docs/screenshots/calendar.png" alt="Calendar view" width="280" />
+  <img src="docs/screenshots/tasks-color.png" alt="Task list with color picker" width="280" />
+  <img src="docs/screenshots/tasks-empty.png" alt="Empty task list" width="280" />
 </p>
--->
+
+<p align="center">
+  <sub>Month view · Daily todos with row colors · Add a new task</sub>
+</p>
 
 ## Requirements
 
