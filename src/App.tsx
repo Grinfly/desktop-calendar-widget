@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { getTodayMonth, parseDateKey } from "./lib/dates";
+import { useDateTick } from "./hooks/useDateTick";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
 import { DatePickerPanel } from "./components/DatePickerPanel";
@@ -13,6 +14,8 @@ import "./styles/global.css";
 type PickerMode = "month" | "date" | null;
 
 function App() {
+  useDateTick();
+
   const {
     data,
     loaded,
