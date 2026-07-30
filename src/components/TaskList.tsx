@@ -13,6 +13,9 @@ interface TaskListProps {
   onDelete: (taskId: string) => void;
   onRename: (taskId: string, title: string) => void;
   onColorChange: (taskId: string, colorId: string) => void;
+  onCopyYesterday: () => void;
+  canCopyYesterday: boolean;
+  onCopyFromDate: () => void;
 }
 
 export function TaskList({
@@ -23,6 +26,9 @@ export function TaskList({
   onDelete,
   onRename,
   onColorChange,
+  onCopyYesterday,
+  canCopyYesterday,
+  onCopyFromDate,
 }: TaskListProps) {
   const [input, setInput] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -70,22 +76,52 @@ export function TaskList({
         )}
       </ul>
 
-      <div className="task-add-row">
-        <input
-          ref={inputRef}
-          className="task-add-input"
-          value={input}
-          placeholder="添加待办..."
-          onChange={(event) => setInput(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") submit();
-          }}
-        />
-        <Tooltip content="添加待办" placement="top">
-          <button type="button" className="task-add-button" onClick={submit}>
-            <span className="task-add-icon" aria-hidden="true" />
-          </button>
-        </Tooltip>
+      <div className="task-footer">
+        <div className="task-copy-actions">
+          <Tooltip
+            content={
+              canCopyYesterday
+                ? "复制前一天的全部待办"
+                : "没有待办可复制"
+            }
+            placement="top"
+          >
+            <button
+              type="button"
+              className="task-copy-from"
+              onClick={onCopyYesterday}
+              disabled={!canCopyYesterday}
+            >
+              复制昨天
+            </button>
+          </Tooltip>
+          <Tooltip content="从其他日期复制待办" placement="top">
+            <button
+              type="button"
+              className="task-copy-from"
+              onClick={onCopyFromDate}
+            >
+              从某天复制
+            </button>
+          </Tooltip>
+        </div>
+        <div className="task-add-row">
+          <input
+            ref={inputRef}
+            className="task-add-input"
+            value={input}
+            placeholder="添加待办..."
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") submit();
+            }}
+          />
+          <Tooltip content="添加待办" placement="top">
+            <button type="button" className="task-add-button" onClick={submit}>
+              <span className="task-add-icon" aria-hidden="true" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       {pendingTask && (

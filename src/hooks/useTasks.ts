@@ -200,6 +200,31 @@ export function useTasks() {
     [updateData],
   );
 
+  const copyTasksFromDate = useCallback(
+    (fromDateKey: string, toDateKey: string) => {
+      if (fromDateKey === toDateKey) return;
+
+      updateData((prev) => {
+        const source = prev.tasks[fromDateKey] ?? [];
+        if (source.length === 0) return prev;
+
+        const copied: Task[] = source.map((task) => ({
+          ...task,
+          id: uuidv4(),
+        }));
+
+        return {
+          ...prev,
+          tasks: {
+            ...prev.tasks,
+            [toDateKey]: [...(prev.tasks[toDateKey] ?? []), ...copied],
+          },
+        };
+      });
+    },
+    [updateData],
+  );
+
   const getTaskProgressOnDate = useCallback(
     (dateKey: string) => {
       const tasks = data.tasks[dateKey];
@@ -226,6 +251,7 @@ export function useTasks() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
+    copyTasksFromDate,
     getTaskProgressOnDate,
   };
 }

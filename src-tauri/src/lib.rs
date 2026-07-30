@@ -205,6 +205,9 @@ pub fn run() {
                 .build(app)?;
 
             let _ = restore_window_state(app.handle());
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+            }
 
             Ok(())
         })

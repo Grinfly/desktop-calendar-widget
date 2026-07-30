@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getTodayMonth, parseDateKey } from "./lib/dates";
+import { getTodayMonth, parseDateKey, toDateKey } from "./lib/dates";
 import { useDateTick } from "./hooks/useDateTick";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
@@ -11,7 +11,7 @@ import { ResizeHandles } from "./components/ResizeHandles";
 import { TitleBar } from "./components/TitleBar";
 import "./styles/global.css";
 
-type PickerMode = "month" | "date" | null;
+type PickerMode = "month" | "date" | "copy" | null;
 
 function App() {
   useDateTick();
@@ -31,6 +31,7 @@ function App() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
+    copyTasksFromDate,
     getTaskProgressOnDate,
   } = useTasks();
 
@@ -75,6 +76,16 @@ function App() {
   const selectedTasks = selectedDate ? (data.tasks[selectedDate] ?? []) : [];
   const selectedDateObj = selectedDate ? parseDateKey(selectedDate) : undefined;
   const showTaskView = view === "tasks" && Boolean(selectedDate);
+  const yesterdayKey = selectedDate
+    ? (() => {
+        const yesterday = parseDateKey(selectedDate);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return toDateKey(yesterday);
+      })()
+    : null;
+  const canCopyYesterday = Boolean(
+    yesterdayKey && (data.tasks[yesterdayKey]?.length ?? 0) > 0,
+  );
 
   const closePicker = () => setPickerMode(null);
   const openSettings = () => {
@@ -95,13 +106,20 @@ function App() {
       onClose={closeSettings}
     />
   ) : showTaskView ? (
-    pickerMode === "date" ? (
+    pickerMode === "date" || pickerMode === "copy" ? (
       <DatePickerPanel
         mode="date"
         anchorDate={selectedDateObj ?? currentMonth}
         selectedDate={selectedDateObj}
         onSelectMonth={setCurrentMonth}
-        onSelectDate={selectDate}
+        onSelectDate={(date) => {
+          if (pickerMode === "copy" && selectedDate) {
+            copyTasksFromDate(toDateKey(date), selectedDate);
+            closePicker();
+            return;
+          }
+          selectDate(date);
+        }}
         onClose={closePicker}
       />
     ) : (
@@ -117,6 +135,12 @@ function App() {
         onColorChange={(taskId, colorId) =>
           updateTaskColor(selectedDate, taskId, colorId)
         }
+        onCopyYesterday={() => {
+          if (!canCopyYesterday || !yesterdayKey) return;
+          copyTasksFromDate(yesterdayKey, selectedDate);
+        }}
+        canCopyYesterday={canCopyYesterday}
+        onCopyFromDate={() => setPickerMode("copy")}
       />
     )
   ) : pickerMode === "month" ? (
@@ -151,7 +175,7 @@ function App() {
               onBack={
                 showSettings
                   ? closeSettings
-                  : pickerMode === "date"
+                  : pickerMode === "date" || pickerMode === "copy"
                     ? closePicker
                     : goToCalendar
               }
