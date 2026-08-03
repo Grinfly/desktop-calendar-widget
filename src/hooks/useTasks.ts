@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { toDateKey } from "../lib/dates";
+import { parseDateKey, toDateKey } from "../lib/dates";
 import { loadAppData, saveAppData } from "../lib/storage";
 import { applyBackgroundOpacity, setPinMode } from "../lib/windowTheme";
 import {
@@ -51,13 +51,13 @@ export function useTasks() {
 
       setData(saved);
       const hasSelectedDate = Boolean(saved.settings.selectedDate);
-      setView(
-        saved.settings.lastView === "tasks" && hasSelectedDate
-          ? "tasks"
-          : "calendar",
-      );
-      if (saved.settings.selectedDate) {
-        setCurrentMonth(new Date(saved.settings.selectedDate));
+      const restoreTasks =
+        saved.settings.lastView === "tasks" && hasSelectedDate;
+      setView(restoreTasks ? "tasks" : "calendar");
+      // Calendar view should open on today's month; only sync month when
+      // resuming a previous task date (which may be in another month).
+      if (restoreTasks) {
+        setCurrentMonth(parseDateKey(saved.settings.selectedDate));
       }
       void applyBackgroundOpacity(saved.settings.backgroundOpacity ?? 100);
       setLoaded(true);
@@ -200,6 +200,21 @@ export function useTasks() {
     [updateData],
   );
 
+  const updateTaskNote = useCallback(
+    (dateKey: string, taskId: string, note: string) => {
+      updateData((prev) => ({
+        ...prev,
+        tasks: {
+          ...prev.tasks,
+          [dateKey]: (prev.tasks[dateKey] ?? []).map((task) =>
+            task.id === taskId ? { ...task, note } : task,
+          ),
+        },
+      }));
+    },
+    [updateData],
+  );
+
   const copyTasksFromDate = useCallback(
     (fromDateKey: string, toDateKey: string) => {
       if (fromDateKey === toDateKey) return;
@@ -251,6 +266,7 @@ export function useTasks() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
+    updateTaskNote,
     copyTasksFromDate,
     getTaskProgressOnDate,
   };

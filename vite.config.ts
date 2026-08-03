@@ -1,12 +1,24 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+
+  // Prevent bundling two React copies (causes useState dispatcher = null).
+  resolve: {
+    dedupe: ["react", "react-dom"],
+    alias: {
+      react: path.resolve(rootDir, "node_modules/react"),
+      "react-dom": path.resolve(rootDir, "node_modules/react-dom"),
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

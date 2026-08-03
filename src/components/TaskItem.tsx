@@ -9,6 +9,7 @@ interface TaskItemProps {
   task: Task;
   onToggle: () => void;
   onRequestDelete: () => void;
+  onRequestDetail: () => void;
   onRename: (title: string) => void;
   onColorChange: (colorId: string) => void;
 }
@@ -17,6 +18,7 @@ export function TaskItem({
   task,
   onToggle,
   onRequestDelete,
+  onRequestDetail,
   onRename,
   onColorChange,
 }: TaskItemProps) {
@@ -160,15 +162,33 @@ export function TaskItem({
 
       <TaskColorPicker colorId={task.color} onChange={onColorChange} />
 
-      <Tooltip content="删除待办" placement="top">
+      <div className="task-menu">
         <button
           type="button"
-          className="task-delete"
-          onClick={onRequestDelete}
+          className="task-menu-trigger"
+          aria-label="更多操作"
         >
-          ×
+          <span className="task-menu-icon" aria-hidden="true" />
         </button>
-      </Tooltip>
+        <div className="task-menu-popup" role="menu">
+          <button
+            type="button"
+            className="task-menu-item"
+            role="menuitem"
+            onClick={onRequestDetail}
+          >
+            详情
+          </button>
+          <button
+            type="button"
+            className="task-menu-item danger"
+            role="menuitem"
+            onClick={onRequestDelete}
+          >
+            删除
+          </button>
+        </div>
+      </div>
     </li>
   );
 }

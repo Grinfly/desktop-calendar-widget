@@ -2,16 +2,21 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Task } from "../lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { TaskDetailPanel } from "./TaskDetailPanel";
 import { TaskItem } from "./TaskItem";
 import { Tooltip } from "./Tooltip";
 
 interface TaskListProps {
   dateKey: string;
   tasks: Task[];
+  detailTaskId: string | null;
+  onOpenDetail: (taskId: string) => void;
+  onCloseDetail: () => void;
   onAdd: (title: string) => void;
   onToggle: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onRename: (taskId: string, title: string) => void;
+  onNoteChange: (taskId: string, note: string) => void;
   onColorChange: (taskId: string, colorId: string) => void;
   onCopyYesterday: () => void;
   canCopyYesterday: boolean;
@@ -21,10 +26,14 @@ interface TaskListProps {
 export function TaskList({
   dateKey,
   tasks,
+  detailTaskId,
+  onOpenDetail,
+  onCloseDetail,
   onAdd,
   onToggle,
   onDelete,
   onRename,
+  onNoteChange,
   onColorChange,
   onCopyYesterday,
   canCopyYesterday,
@@ -35,6 +44,7 @@ export function TaskList({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const pendingTask = tasks.find((task) => task.id === pendingDeleteId);
+  const detailTask = tasks.find((task) => task.id === detailTaskId);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -42,7 +52,8 @@ export function TaskList({
 
   useEffect(() => {
     setPendingDeleteId(null);
-  }, [dateKey]);
+    onCloseDetail();
+  }, [dateKey, onCloseDetail]);
 
   const submit = () => {
     if (!input.trim()) return;
@@ -55,7 +66,23 @@ export function TaskList({
     if (!pendingDeleteId) return;
     onDelete(pendingDeleteId);
     setPendingDeleteId(null);
+    if (detailTaskId === pendingDeleteId) {
+      onCloseDetail();
+    }
   };
+
+  if (detailTask) {
+    return (
+      <section className="task-list-view">
+        <TaskDetailPanel
+          task={detailTask}
+          dateKey={dateKey}
+          onRename={(title) => onRename(detailTask.id, title)}
+          onNoteChange={(note) => onNoteChange(detailTask.id, note)}
+        />
+      </section>
+    );
+  }
 
   return (
     <section className="task-list-view">
@@ -69,6 +96,7 @@ export function TaskList({
               task={task}
               onToggle={() => onToggle(task.id)}
               onRequestDelete={() => setPendingDeleteId(task.id)}
+              onRequestDetail={() => onOpenDetail(task.id)}
               onRename={(title) => onRename(task.id, title)}
               onColorChange={(colorId) => onColorChange(task.id, colorId)}
             />

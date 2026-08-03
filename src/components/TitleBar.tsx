@@ -15,6 +15,7 @@ interface TitleBarProps {
   onDoubleClick?: () => void;
   showMonthNav?: boolean;
   dateKey?: string;
+  detailOpen?: boolean;
   onBack?: () => void;
   onOpenDatePicker?: () => void;
   onGoToTodayMonth?: () => void;
@@ -30,6 +31,7 @@ export function TitleBar({
   onDoubleClick,
   showMonthNav = true,
   dateKey,
+  detailOpen = false,
   onBack,
   onOpenDatePicker,
   onGoToTodayMonth,
@@ -76,16 +78,20 @@ export function TitleBar({
           onDoubleClick={(event) => event.stopPropagation()}
         >
           {backButton}
-          <Tooltip content="选择日期">
-            <button
-              type="button"
-              className="title-bar-label title-bar-picker"
-              onClick={onOpenDatePicker}
-              onMouseDown={(event) => event.stopPropagation()}
-            >
-              {formatDayTitle(dateKey)}
-            </button>
-          </Tooltip>
+          {detailOpen ? (
+            <span className="title-bar-label single">待办详情</span>
+          ) : (
+            <Tooltip content="选择日期">
+              <button
+                type="button"
+                className="title-bar-label title-bar-picker"
+                onClick={onOpenDatePicker}
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                {formatDayTitle(dateKey)}
+              </button>
+            </Tooltip>
+          )}
         </div>
       ) : (
         <div

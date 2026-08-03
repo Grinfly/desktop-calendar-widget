@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getTodayMonth, parseDateKey, toDateKey } from "./lib/dates";
 import { useDateTick } from "./hooks/useDateTick";
@@ -31,12 +31,15 @@ function App() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
+    updateTaskNote,
     copyTasksFromDate,
     getTaskProgressOnDate,
   } = useTasks();
 
   const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const closeDetail = useCallback(() => setDetailTaskId(null), []);
 
   useEffect(() => {
     if (!showSettings) return;
@@ -51,16 +54,20 @@ function App() {
   }, [showSettings]);
 
   useEffect(() => {
-    if (view !== "tasks" || pickerMode !== null) return;
+    if (view !== "tasks" || pickerMode !== null || showSettings) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (detailTaskId) {
+          setDetailTaskId(null);
+          return;
+        }
         goToCalendar();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [view, pickerMode, goToCalendar]);
+  }, [view, pickerMode, showSettings, detailTaskId, goToCalendar]);
 
   if (!loaded) {
     return (
@@ -126,11 +133,17 @@ function App() {
       <TaskList
         dateKey={selectedDate}
         tasks={selectedTasks}
+        detailTaskId={detailTaskId}
+        onOpenDetail={setDetailTaskId}
+        onCloseDetail={closeDetail}
         onAdd={(title) => addTask(selectedDate, title)}
         onToggle={(taskId) => toggleTask(selectedDate, taskId)}
         onDelete={(taskId) => deleteTask(selectedDate, taskId)}
         onRename={(taskId, title) =>
           updateTaskTitle(selectedDate, taskId, title)
+        }
+        onNoteChange={(taskId, note) =>
+          updateTaskNote(selectedDate, taskId, note)
         }
         onColorChange={(taskId, colorId) =>
           updateTaskColor(selectedDate, taskId, colorId)
@@ -172,15 +185,19 @@ function App() {
               settingsOpen={showSettings}
               showMonthNav={false}
               dateKey={selectedDate}
+              detailOpen={Boolean(detailTaskId)}
               onBack={
                 showSettings
                   ? closeSettings
                   : pickerMode === "date" || pickerMode === "copy"
                     ? closePicker
-                    : goToCalendar
+                    : detailTaskId
+                      ? closeDetail
+                      : goToCalendar
               }
               onOpenDatePicker={() => {
                 setShowSettings(false);
+                setDetailTaskId(null);
                 setPickerMode("date");
               }}
             />
