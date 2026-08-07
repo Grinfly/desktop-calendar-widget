@@ -21,7 +21,7 @@ export interface Size {
   height: number;
 }
 
-export type PinMode = "floating" | "desktop";
+export type PinMode = "floating" | "normal" | "desktop";
 export type AppView = "calendar" | "tasks";
 
 export interface AppSettings {

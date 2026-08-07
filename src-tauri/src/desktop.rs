@@ -5,16 +5,20 @@ mod imp {
     use std::sync::Mutex;
 
     use windows::core::w;
-    use windows::Win32::Foundation::{BOOL, HWND, LPARAM, WPARAM};
+    use windows::Win32::Foundation::{BOOL, HWND, LPARAM, POINT, RECT, WPARAM};
+    use windows::Win32::Graphics::Gdi::ScreenToClient;
     use windows::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, FindWindowExW, FindWindowW, GetWindowLongPtrW, IsWindow, SendMessageW,
-        SendMessageTimeoutW, SetParent, SetWindowLongPtrW, SetWindowPos, ShowWindow, GWL_EXSTYLE,
-        GWL_STYLE, SMTO_NORMAL, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
-        SWP_NOZORDER, SW_HIDE, SW_SHOWNA, WM_USER, WS_CHILD, WS_EX_LAYERED, WS_VISIBLE,
+        EnumWindows, FindWindowExW, FindWindowW, GetWindowLongPtrW, GetWindowRect, IsWindow,
+        SendMessageTimeoutW, SendMessageW, SetParent, SetWindowLongPtrW, SetWindowPos, ShowWindow,
+        GWL_EXSTYLE, GWL_STYLE, HWND_BOTTOM, SMTO_NORMAL, SWP_FRAMECHANGED, SWP_NOACTIVATE,
+        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE, SW_SHOWNA, WS_CHILD, WS_EX_LAYERED,
+        WS_VISIBLE,
     };
 
     const SPAWN_WORKERW: u32 = 0x052C;
     const WM_SETREDRAW: u32 = 0x000B;
+    /// Progman on Windows 11 24H2+ raised desktop.
+    const WS_EX_NOREDIRECTIONBITMAP: u32 = 0x0020_0000;
 
     static CACHED_WORKERW: Mutex<Option<isize>> = Mutex::new(None);
 
@@ -24,6 +28,47 @@ mod imp {
 
     fn is_valid(hwnd: HWND) -> bool {
         hwnd.0 != null_mut() && unsafe { IsWindow(hwnd).as_bool() }
+    }
+
+    fn find_progman() -> Result<HWND, String> {
+        let progman = unsafe { FindWindowW(w!("Progman"), None) }
+            .map_err(|e| format!("FindWindowW(Progman) 失败: {e}"))?;
+        if !is_valid(progman) {
+            return Err("找不到 Progman 窗口".into());
+        }
+        Ok(progman)
+    }
+
+    fn is_new_desktop_shell(progman: HWND) -> bool {
+        let ex = unsafe { GetWindowLongPtrW(progman, GWL_EXSTYLE) } as u32;
+        (ex & WS_EX_NOREDIRECTIONBITMAP) != 0
+    }
+
+    fn raise_desktop(progman: HWND) {
+        unsafe {
+            let mut result = 0usize;
+            // Win11 24H2+ raised-desktop spawn
+            let _ = SendMessageTimeoutW(
+                progman,
+                SPAWN_WORKERW,
+                WPARAM(0xD),
+                LPARAM(0x1),
+                SMTO_NORMAL,
+                1000,
+                Some((&mut result) as *mut usize),
+            );
+            // Classic spawn
+            let _ = SendMessageTimeoutW(
+                progman,
+                SPAWN_WORKERW,
+                WPARAM(0),
+                LPARAM(0),
+                SMTO_NORMAL,
+                1000,
+                Some((&mut result) as *mut usize),
+            );
+            let _ = result;
+        }
     }
 
     unsafe extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
@@ -42,7 +87,7 @@ mod imp {
         BOOL(1)
     }
 
-    fn enum_workerw() -> Option<HWND> {
+    fn enum_classic_workerw() -> Option<HWND> {
         let mut data = EnumData {
             workerw: HWND::default(),
         };
@@ -57,30 +102,7 @@ mod imp {
         }
     }
 
-    fn spawn_workerw() -> Result<(), String> {
-        let progman = unsafe { FindWindowW(w!("Progman"), None) }
-            .map_err(|e| format!("FindWindowW(Progman) 失败: {e}"))?;
-        if !is_valid(progman) {
-            return Err("找不到 Progman 窗口".into());
-        }
-
-        unsafe {
-            let mut result = 0usize;
-            let _ = SendMessageTimeoutW(
-                progman,
-                WM_USER,
-                WPARAM(SPAWN_WORKERW as usize),
-                LPARAM(0),
-                SMTO_NORMAL,
-                1000,
-                Some((&mut result) as *mut usize),
-            );
-        }
-
-        Ok(())
-    }
-
-    fn find_workerw() -> Result<HWND, String> {
+    fn find_classic_workerw(progman: HWND) -> Result<HWND, String> {
         if let Ok(cache) = CACHED_WORKERW.lock() {
             if let Some(hwnd_raw) = *cache {
                 let hwnd = HWND(hwnd_raw as *mut c_void);
@@ -90,20 +112,40 @@ mod imp {
             }
         }
 
-        if let Some(hwnd) = enum_workerw() {
-            if let Ok(mut cache) = CACHED_WORKERW.lock() {
-                *cache = Some(hwnd.0 as isize);
-            }
-            return Ok(hwnd);
-        }
+        raise_desktop(progman);
 
-        spawn_workerw()?;
+        let hwnd = enum_classic_workerw()
+            .or_else(|| {
+                unsafe { FindWindowExW(progman, None, w!("WorkerW"), None) }
+                    .ok()
+                    .filter(|h| is_valid(*h))
+            })
+            .ok_or_else(|| "找不到 WorkerW 窗口".to_string())?;
 
-        let hwnd = enum_workerw().ok_or_else(|| "找不到 WorkerW 窗口".to_string())?;
         if let Ok(mut cache) = CACHED_WORKERW.lock() {
             *cache = Some(hwnd.0 as isize);
         }
         Ok(hwnd)
+    }
+
+    fn find_defview(progman: HWND) -> Result<HWND, String> {
+        let def = unsafe { FindWindowExW(progman, None, w!("SHELLDLL_DefView"), None) }
+            .map_err(|e| format!("FindWindowExW(SHELLDLL_DefView) 失败: {e}"))?;
+        if !is_valid(def) {
+            return Err("找不到 SHELLDLL_DefView".into());
+        }
+        Ok(def)
+    }
+
+    fn find_progman_workerw(progman: HWND, def_view: HWND) -> Option<HWND> {
+        unsafe { FindWindowExW(progman, def_view, w!("WorkerW"), None) }
+            .ok()
+            .filter(|h| is_valid(*h))
+            .or_else(|| {
+                unsafe { FindWindowExW(progman, None, w!("WorkerW"), None) }
+                    .ok()
+                    .filter(|h| is_valid(*h))
+            })
     }
 
     fn suspend_redraw(hwnd: HWND) {
@@ -122,21 +164,28 @@ mod imp {
                 0,
                 0,
                 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_NOACTIVATE,
             );
         }
     }
 
-    pub fn attach_to_desktop(hwnd_raw: isize) -> Result<(), String> {
-        let hwnd = HWND(hwnd_raw as *mut c_void);
-        let workerw = find_workerw()?;
-
+    fn screen_to_parent_client(parent: HWND, hwnd: HWND) -> Result<(i32, i32), String> {
+        let mut rect = RECT::default();
         unsafe {
-            let _ = ShowWindow(hwnd, SW_HIDE);
-            suspend_redraw(hwnd);
+            GetWindowRect(hwnd, &mut rect).map_err(|e| format!("GetWindowRect 失败: {e}"))?;
+        }
+        let mut pt = POINT {
+            x: rect.left,
+            y: rect.top,
+        };
+        unsafe {
+            let _ = ScreenToClient(parent, &mut pt);
+        }
+        Ok((pt.x, pt.y))
+    }
 
-            SetParent(hwnd, workerw).map_err(|e| format!("SetParent 失败: {e}"))?;
-
+    fn prepare_child_styles(hwnd: HWND) {
+        unsafe {
             let style = GetWindowLongPtrW(hwnd, GWL_STYLE) as u32;
             SetWindowLongPtrW(
                 hwnd,
@@ -144,12 +193,60 @@ mod imp {
                 (style | WS_CHILD.0 | WS_VISIBLE.0) as isize,
             );
 
+            // Keep layered style — WebView2 transparency depends on it.
             let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
-            SetWindowLongPtrW(
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (ex_style | WS_EX_LAYERED.0) as isize);
+        }
+    }
+
+    fn restore_toplevel_styles(hwnd: HWND) {
+        unsafe {
+            let style = GetWindowLongPtrW(hwnd, GWL_STYLE) as u32;
+            SetWindowLongPtrW(hwnd, GWL_STYLE, (style & !WS_CHILD.0) as isize);
+
+            let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (ex_style | WS_EX_LAYERED.0) as isize);
+        }
+    }
+
+    /// Win11 24H2+: parent to Progman, Z-order under DefView (icons), above WorkerW.
+    fn attach_new_shell(hwnd: HWND, progman: HWND) -> Result<(), String> {
+        raise_desktop(progman);
+        let def_view = find_defview(progman)?;
+        let worker = find_progman_workerw(progman, def_view);
+
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_HIDE);
+            suspend_redraw(hwnd);
+
+            SetParent(hwnd, progman).map_err(|e| format!("SetParent(Progman) 失败: {e}"))?;
+            prepare_child_styles(hwnd);
+
+            let (x, y) = screen_to_parent_client(progman, hwnd)?;
+            // Place below DefView so desktop icons stay on top.
+            SetWindowPos(
                 hwnd,
-                GWL_EXSTYLE,
-                (ex_style & !WS_EX_LAYERED.0) as isize,
-            );
+                def_view,
+                x,
+                y,
+                0,
+                0,
+                SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_FRAMECHANGED,
+            )
+            .map_err(|e| format!("SetWindowPos 失败: {e}"))?;
+
+            if let Some(worker) = worker {
+                // Keep system wallpaper WorkerW behind our widget.
+                let _ = SetWindowPos(
+                    worker,
+                    hwnd,
+                    0,
+                    0,
+                    0,
+                    0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+                );
+            }
 
             resume_redraw(hwnd);
             let _ = ShowWindow(hwnd, SW_SHOWNA);
@@ -158,27 +255,78 @@ mod imp {
         Ok(())
     }
 
-    pub fn detach_to_floating(hwnd_raw: isize) -> Result<(), String> {
-        let hwnd = HWND(hwnd_raw as *mut c_void);
+    fn attach_classic(hwnd: HWND, progman: HWND) -> Result<(), String> {
+        let workerw = find_classic_workerw(progman)?;
 
         unsafe {
             let _ = ShowWindow(hwnd, SW_HIDE);
             suspend_redraw(hwnd);
 
-            SetParent(hwnd, HWND::default()).map_err(|e| format!("SetParent(NULL) 失败: {e}"))?;
+            SetParent(hwnd, workerw).map_err(|e| format!("SetParent(WorkerW) 失败: {e}"))?;
+            prepare_child_styles(hwnd);
 
-            let style = GetWindowLongPtrW(hwnd, GWL_STYLE) as u32;
-            SetWindowLongPtrW(hwnd, GWL_STYLE, (style & !WS_CHILD.0) as isize);
-
-            let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
-            SetWindowLongPtrW(
+            let (x, y) = screen_to_parent_client(workerw, hwnd)?;
+            SetWindowPos(
                 hwnd,
-                GWL_EXSTYLE,
-                (ex_style | WS_EX_LAYERED.0) as isize,
-            );
+                HWND_BOTTOM,
+                x,
+                y,
+                0,
+                0,
+                SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_FRAMECHANGED,
+            )
+            .map_err(|e| format!("SetWindowPos 失败: {e}"))?;
 
             resume_redraw(hwnd);
             let _ = ShowWindow(hwnd, SW_SHOWNA);
+        }
+
+        Ok(())
+    }
+
+    pub fn attach_to_desktop(hwnd_raw: isize) -> Result<(), String> {
+        let hwnd = HWND(hwnd_raw as *mut c_void);
+        if !is_valid(hwnd) {
+            return Err("无效窗口句柄".into());
+        }
+
+        let progman = find_progman()?;
+        if is_new_desktop_shell(progman) {
+            attach_new_shell(hwnd, progman)
+        } else {
+            attach_classic(hwnd, progman)
+        }
+    }
+
+    pub fn detach_to_floating(hwnd_raw: isize) -> Result<(), String> {
+        let hwnd = HWND(hwnd_raw as *mut c_void);
+        if !is_valid(hwnd) {
+            return Err("无效窗口句柄".into());
+        }
+
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_HIDE);
+            suspend_redraw(hwnd);
+
+            SetParent(hwnd, HWND::default())
+                .map_err(|e| format!("SetParent(NULL) 失败: {e}"))?;
+            restore_toplevel_styles(hwnd);
+
+            resume_redraw(hwnd);
+            let _ = ShowWindow(hwnd, SW_SHOWNA);
+            let _ = SetWindowPos(
+                hwnd,
+                HWND::default(),
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOACTIVATE,
+            );
+        }
+
+        if let Ok(mut cache) = CACHED_WORKERW.lock() {
+            *cache = None;
         }
 
         Ok(())

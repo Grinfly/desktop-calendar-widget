@@ -18,6 +18,7 @@
         "height": 360,
         "decorations": false,
         "transparent": true,
+        "shadow": false,
         "resizable": true,
         "minWidth": 260,
         "minHeight": 300,
@@ -25,7 +26,8 @@
         "maxHeight": 720,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "visible": false
+        "visible": false,
+        "backgroundColor": [0, 0, 0, 0]
       }
     ],
     "security": {

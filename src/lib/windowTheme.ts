@@ -1,4 +1,7 @@
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+
+import type { PinMode } from "./types";
 
 export function applyBackgroundOpacityCss(opacity: number) {
   const alpha = Math.min(100, Math.max(0, opacity)) / 100;
@@ -10,27 +13,20 @@ export async function applyBackgroundOpacity(opacity: number) {
 
   try {
     const window = getCurrentWindow();
-    const clamped = Math.min(100, Math.max(20, opacity));
-    const alpha = Math.round((clamped / 100) * 255);
+    // On Windows 8+, a non-zero alpha is ignored and paints an opaque
+    // rectangle — that shows as sharp tips outside CSS border-radius.
+    // Keep the clear color fully transparent; card opacity is CSS-only.
     await window.setBackgroundColor({
-      red: 247,
-      green: 243,
-      blue: 236,
-      alpha,
+      red: 0,
+      green: 0,
+      blue: 0,
+      alpha: 0,
     });
   } catch (error) {
     console.error("同步窗口背景透明度失败", error);
   }
 }
 
-export async function setPinMode(mode: "floating" | "desktop"): Promise<void> {
-  const window = getCurrentWindow();
-  const floating = mode === "floating";
-  const current = await window.isAlwaysOnTop();
-
-  if (current === floating) {
-    return;
-  }
-
-  await window.setAlwaysOnTop(floating);
+export async function setPinMode(mode: PinMode): Promise<void> {
+  await invoke("set_pin_mode", { mode });
 }

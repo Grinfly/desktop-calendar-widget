@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { v4 as uuidv4 } from "uuid";
 
 import { parseDateKey, toDateKey } from "../lib/dates";
@@ -71,6 +72,30 @@ export function useTasks() {
     };
   }, []);
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    void listen<PinMode>("pin-mode-changed", (event) => {
+      const mode = event.payload;
+      if (mode !== "floating" && mode !== "normal" && mode !== "desktop") {
+        return;
+      }
+      updateData((prev) => {
+        if (prev.settings.pinMode === mode) return prev;
+        return {
+          ...prev,
+          settings: { ...prev.settings, pinMode: mode },
+        };
+      });
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, [updateData]);
+
   const updateSettings = useCallback(
     (patch: Partial<AppSettings>) => {
       updateData((prev) => ({
@@ -96,8 +121,10 @@ export function useTasks() {
   }, [updateSettings]);
 
   const togglePinMode = useCallback(() => {
+    // Title-bar pin only toggles always-on-top vs normal (both draggable).
+    // Desktop-stick is a separate tray action.
     const next: PinMode =
-      data.settings.pinMode === "floating" ? "desktop" : "floating";
+      data.settings.pinMode === "floating" ? "normal" : "floating";
 
     updateSettings({ pinMode: next });
     void setPinMode(next).catch((error) => {
