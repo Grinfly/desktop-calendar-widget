@@ -22,10 +22,67 @@ struct Size {
 impl Default for Size {
     fn default() -> Self {
         Self {
-            width: 300,
-            height: 360,
+            width: DEFAULT_WINDOW_WIDTH,
+            height: DEFAULT_WINDOW_HEIGHT,
         }
     }
+}
+
+const MIN_WINDOW_WIDTH: u32 = 260;
+const MIN_WINDOW_HEIGHT: u32 = 300;
+const MAX_WINDOW_WIDTH: u32 = 640;
+const MAX_WINDOW_HEIGHT: u32 = 720;
+const DEFAULT_WINDOW_X: i32 = 120;
+const DEFAULT_WINDOW_Y: i32 = 80;
+const DEFAULT_WINDOW_WIDTH: u32 = 300;
+const DEFAULT_WINDOW_HEIGHT: u32 = 360;
+
+/// Win32 reports minimized windows near (-32000, -32000).
+fn is_plausible_position(x: i32, y: i32) -> bool {
+    x > -10_000 && y > -10_000
+}
+
+fn is_plausible_size(width: u32, height: u32) -> bool {
+    (MIN_WINDOW_WIDTH..=MAX_WINDOW_WIDTH).contains(&width)
+        && (MIN_WINDOW_HEIGHT..=MAX_WINDOW_HEIGHT).contains(&height)
+}
+
+fn clamp_window_size(width: u32, height: u32) -> (u32, u32) {
+    (
+        width.clamp(MIN_WINDOW_WIDTH, MAX_WINDOW_WIDTH),
+        height.clamp(MIN_WINDOW_HEIGHT, MAX_WINDOW_HEIGHT),
+    )
+}
+
+fn rects_overlap(
+    ax: i32,
+    ay: i32,
+    aw: u32,
+    ah: u32,
+    bx: i32,
+    by: i32,
+    bw: u32,
+    bh: u32,
+) -> bool {
+    ax < bx.saturating_add_unsigned(bw)
+        && ax.saturating_add_unsigned(aw) > bx
+        && ay < by.saturating_add_unsigned(bh)
+        && ay.saturating_add_unsigned(ah) > by
+}
+
+fn bounds_visible_on_monitors(
+    monitors: &[(i32, i32, u32, u32)],
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> bool {
+    if monitors.is_empty() {
+        return is_plausible_position(x, y);
+    }
+    monitors
+        .iter()
+        .any(|(mx, my, mw, mh)| rects_overlap(x, y, width, height, *mx, *my, *mw, *mh))
 }
 
 #[derive(Debug, Deserialize)]
@@ -157,6 +214,109 @@ fn switch_pin_mode(app: &tauri::AppHandle, window: &tauri::WebviewWindow, mode: 
     }
 }
 
+fn collect_monitor_rects(window: &tauri::WebviewWindow) -> Vec<(i32, i32, u32, u32)> {
+    window
+        .available_monitors()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|monitor| {
+            let pos = monitor.position();
+            let size = monitor.size();
+            (pos.x, pos.y, size.width, size.height)
+        })
+        .collect()
+}
+
+fn apply_window_bounds(window: &tauri::WebviewWindow, x: i32, y: i32, width: u32, height: u32) {
+    let (width, height) = clamp_window_size(width, height);
+    let monitors = collect_monitor_rects(window);
+    let (x, y) = if is_plausible_position(x, y)
+        && bounds_visible_on_monitors(&monitors, x, y, width, height)
+    {
+        (x, y)
+    } else {
+        (DEFAULT_WINDOW_X, DEFAULT_WINDOW_Y)
+    };
+
+    let _ = window.set_position(PhysicalPosition::new(x, y));
+    let _ = window.set_size(PhysicalSize::new(width, height));
+}
+
+fn ensure_window_on_screen(window: &tauri::WebviewWindow) {
+    let Some(pos) = window.outer_position().ok() else {
+        apply_window_bounds(
+            window,
+            DEFAULT_WINDOW_X,
+            DEFAULT_WINDOW_Y,
+            DEFAULT_WINDOW_WIDTH,
+            DEFAULT_WINDOW_HEIGHT,
+        );
+        return;
+    };
+    let Some(size) = window.outer_size().ok() else {
+        apply_window_bounds(
+            window,
+            DEFAULT_WINDOW_X,
+            DEFAULT_WINDOW_Y,
+            DEFAULT_WINDOW_WIDTH,
+            DEFAULT_WINDOW_HEIGHT,
+        );
+        return;
+    };
+
+    if is_plausible_position(pos.x, pos.y)
+        && is_plausible_size(size.width, size.height)
+        && bounds_visible_on_monitors(
+            &collect_monitor_rects(window),
+            pos.x,
+            pos.y,
+            size.width,
+            size.height,
+        )
+    {
+        return;
+    }
+
+    apply_window_bounds(
+        window,
+        DEFAULT_WINDOW_X,
+        DEFAULT_WINDOW_Y,
+        DEFAULT_WINDOW_WIDTH,
+        DEFAULT_WINDOW_HEIGHT,
+    );
+}
+
+fn reveal_window(window: &tauri::WebviewWindow) {
+    let _ = window.unminimize();
+    ensure_window_on_screen(window);
+    let _ = window.show();
+    let _ = window.set_focus();
+}
+
+fn window_is_practically_visible(window: &tauri::WebviewWindow) -> bool {
+    if !window.is_visible().unwrap_or(false) {
+        return false;
+    }
+    if window.is_minimized().unwrap_or(false) {
+        return false;
+    }
+    let Ok(pos) = window.outer_position() else {
+        return false;
+    };
+    let Ok(size) = window.outer_size() else {
+        return false;
+    };
+    is_plausible_position(pos.x, pos.y)
+        && is_plausible_size(size.width, size.height)
+        && bounds_visible_on_monitors(
+            &collect_monitor_rects(window),
+            pos.x,
+            pos.y,
+            size.width,
+            size.height,
+        )
+}
+
 fn restore_window_state(app: &tauri::AppHandle) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
@@ -165,14 +325,13 @@ fn restore_window_state(app: &tauri::AppHandle) -> Result<(), String> {
     let raw = storage::load_data()?;
     let data: AppData = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
 
-    let _ = window.set_position(PhysicalPosition::new(
+    apply_window_bounds(
+        &window,
         data.settings.position.x,
         data.settings.position.y,
-    ));
-    let _ = window.set_size(PhysicalSize::new(
         data.settings.size.width,
         data.settings.size.height,
-    ));
+    );
     apply_pin_mode(&window, &data.settings.pin_mode)?;
     apply_window_rounded_clip(&window);
 
@@ -249,8 +408,17 @@ async fn set_pin_mode(
 
 #[tauri::command]
 async fn save_window_bounds(window: tauri::WebviewWindow) -> Result<(), String> {
+    if window.is_minimized().unwrap_or(false) || !window.is_visible().unwrap_or(false) {
+        return Ok(());
+    }
+
     let position = window.outer_position().map_err(|e| e.to_string())?;
     let size = window.outer_size().map_err(|e| e.to_string())?;
+    if !is_plausible_position(position.x, position.y) || !is_plausible_size(size.width, size.height)
+    {
+        return Ok(());
+    }
+
     let raw = storage::load_data()?;
     let mut value: serde_json::Value =
         serde_json::from_str(&raw).map_err(|e| e.to_string())?;
@@ -342,8 +510,7 @@ pub fn run() {
 
                     match event.id.as_ref() {
                         "show" => {
-                            let _ = window.show();
-                            let _ = window.set_focus();
+                            reveal_window(&window);
                         }
                         "hide" => {
                             let _ = window.hide();
@@ -369,12 +536,10 @@ pub fn run() {
                     {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
-                            let visible = window.is_visible().unwrap_or(false);
-                            if visible {
+                            if window_is_practically_visible(&window) {
                                 let _ = window.hide();
                             } else {
-                                let _ = window.show();
-                                let _ = window.set_focus();
+                                reveal_window(&window);
                             }
                         }
                     }
@@ -389,7 +554,7 @@ pub fn run() {
                 .unwrap_or_else(read_pin_mode);
             sync_tray_pin_checks(app.handle(), &mode_after_restore);
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
+                reveal_window(&window);
                 let _ = window.set_shadow(false);
                 apply_window_rounded_clip(&window);
             }
@@ -412,4 +577,34 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_minimized_window_position() {
+        assert!(!is_plausible_position(-32000, -32000));
+        assert!(!is_plausible_position(-32000, 80));
+        assert!(is_plausible_position(-1920, 0));
+        assert!(is_plausible_position(120, 80));
+    }
+
+    #[test]
+    fn rejects_collapsed_window_size() {
+        assert!(!is_plausible_size(199, 34));
+        assert!(is_plausible_size(300, 360));
+        assert_eq!(clamp_window_size(199, 34), (260, 300));
+    }
+
+    #[test]
+    fn treats_minimized_coords_as_off_screen() {
+        let monitors = [(0, 0, 1920, 1080)];
+        assert!(!bounds_visible_on_monitors(
+            &monitors, -32000, -32000, 199, 34
+        ));
+        assert!(bounds_visible_on_monitors(&monitors, 120, 80, 300, 360));
+        assert!(bounds_visible_on_monitors(&monitors, -100, 80, 300, 360));
+    }
 }
