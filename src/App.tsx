@@ -9,11 +9,12 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { TaskList } from "./components/TaskList";
 import { ResizeHandles } from "./components/ResizeHandles";
 import { TitleBar } from "./components/TitleBar";
+import { ExtensionProvider, useExtensions } from "./extensions/ExtensionContext";
 import "./styles/global.css";
 
 type PickerMode = "month" | "date" | "copy" | null;
 
-function App() {
+function AppShell() {
   useDateTick();
 
   const {
@@ -35,6 +36,7 @@ function App() {
     copyTasksFromDate,
     getTaskProgressOnDate,
   } = useTasks();
+  const { loaded: extensionsLoaded, getDaySubLabel } = useExtensions();
 
   const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -69,7 +71,7 @@ function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [view, pickerMode, showSettings, detailTaskId, goToCalendar]);
 
-  if (!loaded) {
+  if (!loaded || !extensionsLoaded) {
     return (
       <div className="widget-shell loading">
         <div className="widget-card">
@@ -127,6 +129,7 @@ function App() {
           }
           selectDate(date);
         }}
+        getDaySubLabel={getDaySubLabel}
         onClose={closePicker}
       />
     ) : (
@@ -161,12 +164,14 @@ function App() {
       mode="month"
       anchorDate={currentMonth}
       onSelectMonth={setCurrentMonth}
+      getDaySubLabel={getDaySubLabel}
       onClose={closePicker}
     />
   ) : (
     <CalendarGrid
       month={currentMonth}
       getTaskProgressOnDate={getTaskProgressOnDate}
+      getDaySubLabel={getDaySubLabel}
       onSelectDate={selectDate}
     />
   );
@@ -235,4 +240,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ExtensionProvider>
+      <AppShell />
+    </ExtensionProvider>
+  );
+}

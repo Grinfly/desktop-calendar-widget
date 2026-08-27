@@ -54,8 +54,3 @@ export function getDaySubLabel(date: Date): string {
 
   return lunar.getDayInChinese();
 }
-
-/** @deprecated 使用 getDaySubLabel */
-export function getHolidayLabel(date: Date): string {
-  return getDaySubLabel(date);
-}

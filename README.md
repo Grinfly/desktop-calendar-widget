@@ -20,19 +20,20 @@
 
 **CanDo（蚕豆）** is a lightweight Windows desktop widget that combines a calendar with a daily todo list. The name plays on *Calendar + Todo* — and sounds like *Can Do* in Chinese (*candou*, broad bean).
 
-Small, translucent, and pin-able — see the date, lunar calendar, and what you need to do today at a glance.
+Small, translucent, and pin-able — see the date and what you need to do today at a glance. Lunar dates, solar terms, and festivals are an optional extension.
 
 ## Features
 
 | Module | Description |
 |--------|-------------|
-| Month view | Gregorian calendar with lunar date, solar terms, and festivals |
-| Task progress | Colored bar under lunar text: yellow = pending, green = done, split by ratio |
+| Month view | Gregorian calendar; install the lunar extension for lunar dates, solar terms, and festivals |
+| Task progress | Colored bar under the date: yellow = pending, green = done, split by ratio |
 | Daily todos | Add, check off, edit, delete; row colors and expandable long text |
 | Pin modes | Floating (always on top) / Desktop (release always-on-top) |
 | Transparency | Adjustable background opacity 20%–100% in Settings |
 | System tray | Show / hide, switch pin mode, quit |
 | Local storage | Data saved to `%APPDATA%/desktop-calendar-widget/data.json` |
+| Extensions | Install `.cando-ext` packages from Settings; unused features stay out of the app |
 
 ## Screenshots
 
@@ -82,11 +83,21 @@ scripts/build-windows.bat
 
 Installer output: `src-tauri/target/release/bundle/`
 
+## Extensions
+
+The main app does not include the lunar calendar. Build and install the extension package separately:
+
+```bash
+npm run build:ext:lunar
+```
+
+Output: `dist-extensions/lunar.cando-ext`. Open Settings → Install extension and pick that file. Uninstalling removes `%APPDATA%/desktop-calendar-widget/extensions/<id>/`.
+
 ## Tech Stack
 
 - **Frontend**: React 19 · TypeScript · Vite
 - **Desktop**: Tauri 2
-- **Calendar**: date-fns · lunar-javascript (lunar / solar terms / festivals)
+- **Calendar**: date-fns; the lunar extension uses lunar-javascript
 
 ## Branding
 

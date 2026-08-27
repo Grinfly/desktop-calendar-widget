@@ -20,19 +20,20 @@
 
 **蚕豆（CanDo）** 是一款 Windows 桌面日历待办小组件。名字来自「Calendar + Todo」，谐音 Can Do / 蚕豆——能办、好记。
 
-小巧、透明、可钉在桌面上，帮你一眼看到日期、农历和今天要做什么。
+小巧、透明、可钉在桌面上，帮你一眼看到日期和今天要做什么。农历、节气和节日以扩展包单独安装。
 
 ## 功能亮点
 
 | 模块 | 说明 |
 |------|------|
-| 月历视图 | 公历月历，每日显示农历 / 节气 / 节日 |
-| 待办进度 | 农历下方彩色横线：黄色=未完成，绿色=已完成，按比例分段 |
+| 月历视图 | 公历月历；安装农历扩展后显示农历 / 节气 / 节日 |
+| 待办进度 | 日期下方彩色横线：黄色=未完成，绿色=已完成，按比例分段 |
 | 当日待办 | 添加、勾选、编辑、删除；支持行颜色与长文本展开 |
 | 钉住模式 | 悬浮置顶 / 贴到桌面（关闭置顶，融入壁纸层） |
 | 透明背景 | 设置中调节不透明度 20%–100% |
 | 系统托盘 | 显示 / 隐藏、切换钉住、退出 |
 | 本地存储 | 数据保存在 `%APPDATA%/desktop-calendar-widget/data.json` |
+| 扩展 | 设置中从 `.cando-ext` 文件安装；未安装的功能不进主程序 |
 
 ## 截图
 
@@ -82,11 +83,21 @@ scripts/build-windows.bat
 
 安装包输出目录：`src-tauri/target/release/bundle/`
 
+## 扩展
+
+主程序不含农历。扩展包（`.cando-ext`）需单独构建并在设置中安装：
+
+```bash
+npm run build:ext:lunar
+```
+
+产物：`dist-extensions/lunar.cando-ext`。打开设置 → 安装扩展，选中该文件。卸载后扩展目录会从 `%APPDATA%/desktop-calendar-widget/extensions/` 删除。
+
 ## 技术栈
 
 - **前端**：React 19 · TypeScript · Vite
 - **桌面**：Tauri 2
-- **日期**：date-fns · lunar-javascript（农历 / 节气 / 节日）
+- **日期**：date-fns；农历扩展使用 lunar-javascript
 
 ## 品牌资源
 

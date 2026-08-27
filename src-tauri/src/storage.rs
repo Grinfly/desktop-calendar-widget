@@ -1,11 +1,15 @@
 use std::fs;
 use std::path::PathBuf;
 
-fn data_path() -> Result<PathBuf, String> {
+pub fn app_data_dir() -> Result<PathBuf, String> {
     let base = dirs::data_dir().ok_or("无法获取 AppData 目录")?;
     let dir = base.join("desktop-calendar-widget");
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir.join("data.json"))
+    Ok(dir)
+}
+
+fn data_path() -> Result<PathBuf, String> {
+    Ok(app_data_dir()?.join("data.json"))
 }
 
 pub fn default_data_json() -> String {

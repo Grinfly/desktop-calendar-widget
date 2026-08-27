@@ -1,4 +1,5 @@
 mod desktop;
+mod extensions;
 mod storage;
 
 use std::sync::Mutex;
@@ -444,7 +445,11 @@ pub fn run() {
             load_data,
             save_data,
             set_pin_mode,
-            save_window_bounds
+            save_window_bounds,
+            extensions::list_extensions,
+            extensions::install_extension,
+            extensions::uninstall_extension,
+            extensions::read_extension_entry
         ])
         .setup(|app| {
             let initial_pin_mode = read_pin_mode();

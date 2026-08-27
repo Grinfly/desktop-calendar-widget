@@ -5,12 +5,14 @@ import { DayCell } from "./DayCell";
 interface CalendarGridProps {
   month: Date;
   getTaskProgressOnDate: (dateKey: string) => TaskProgress | null;
+  getDaySubLabel?: (date: Date) => string | undefined;
   onSelectDate: (date: Date) => void;
 }
 
 export function CalendarGrid({
   month,
   getTaskProgressOnDate,
+  getDaySubLabel,
   onSelectDate,
 }: CalendarGridProps) {
   const days = getCalendarDays(month);
@@ -31,6 +33,7 @@ export function CalendarGrid({
             date={day}
             currentMonth={month}
             taskProgress={getTaskProgressOnDate(toDateKey(day))}
+            getDaySubLabel={getDaySubLabel}
             onSelect={onSelectDate}
           />
         ))}

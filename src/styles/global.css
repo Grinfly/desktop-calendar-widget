@@ -302,7 +302,8 @@ button {
 .task-color-option,
 .confirm-btn,
 .task-add-button,
-.settings-slider {
+.settings-slider,
+.settings-action-button {
   -webkit-app-region: no-drag;
 }
 
@@ -626,7 +627,8 @@ button {
   gap: 12px;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .settings-toolbar {
@@ -653,6 +655,7 @@ button {
 }
 
 .settings-label {
+  margin: 0;
   font-size: 13px;
   font-weight: 500;
 }
@@ -679,6 +682,72 @@ button {
 
 .settings-hint {
   margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.settings-error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-action-button {
+  flex-shrink: 0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(196, 92, 62, 0.1);
+  cursor: pointer;
+}
+
+.settings-action-button:hover {
+  background: rgba(196, 92, 62, 0.18);
+}
+
+.settings-action-button.danger {
+  color: #a34a3a;
+}
+
+.settings-ext-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-ext-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-ext-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-ext-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-ext-desc {
   font-size: 11px;
   line-height: 1.4;
   color: var(--muted);

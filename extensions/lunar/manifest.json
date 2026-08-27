@@ -1,0 +1,7 @@
+{
+  "id": "lunar",
+  "name": "农历",
+  "version": "0.1.0",
+  "description": "日期下方显示农历、节气和节日",
+  "entry": "index.js"
+}

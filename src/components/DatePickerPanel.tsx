@@ -14,7 +14,6 @@ import {
   WEEKDAY_LABELS,
   withYearMonth,
 } from "../lib/dates";
-import { getDaySubLabel } from "../lib/holidays";
 import { Tooltip } from "./Tooltip";
 
 type PickerMode = "month" | "date";
@@ -25,6 +24,7 @@ interface DatePickerPanelProps {
   selectedDate?: Date;
   onSelectMonth: (date: Date) => void;
   onSelectDate?: (date: Date) => void;
+  getDaySubLabel?: (date: Date) => string | undefined;
   onClose: () => void;
 }
 
@@ -34,6 +34,7 @@ export function DatePickerPanel({
   selectedDate,
   onSelectMonth,
   onSelectDate,
+  getDaySubLabel,
   onClose,
 }: DatePickerPanelProps) {
   const [viewYear, setViewYear] = useState(getYear(anchorDate));
@@ -140,7 +141,7 @@ export function DatePickerPanel({
               const inMonth = isSameMonth(day, viewMonthDate);
               const selected =
                 selectedDate !== undefined && isSameDay(day, selectedDate);
-              const subLabel = getDaySubLabel(day);
+              const subLabel = getDaySubLabel?.(day);
               return (
                 <button
                   key={toDateKey(day)}
@@ -151,7 +152,7 @@ export function DatePickerPanel({
                     inMonth ? "in-month" : "out-month",
                     isToday(day) ? "today" : "",
                     selected ? "selected" : "",
-                    "has-sub-label",
+                    subLabel ? "has-sub-label" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -160,9 +161,11 @@ export function DatePickerPanel({
                 >
                   <span className="day-cell-main">
                     <span className="day-number">{day.getDate()}</span>
-                    <span className="day-sub-label" aria-hidden="true">
-                      {subLabel}
-                    </span>
+                    {subLabel ? (
+                      <span className="day-sub-label" aria-hidden="true">
+                        {subLabel}
+                      </span>
+                    ) : null}
                   </span>
                 </button>
               );

@@ -1,13 +1,13 @@
 import type { CSSProperties } from "react";
 
 import { isSameMonth, isToday, toDateKey } from "../lib/dates";
-import { getDaySubLabel } from "../lib/holidays";
 import type { TaskProgress } from "../lib/types";
 
 interface DayCellProps {
   date: Date;
   currentMonth: Date;
   taskProgress: TaskProgress | null;
+  getDaySubLabel?: (date: Date) => string | undefined;
   onSelect: (date: Date) => void;
 }
 
@@ -19,11 +19,13 @@ export function DayCell({
   date,
   currentMonth,
   taskProgress,
+  getDaySubLabel,
   onSelect,
 }: DayCellProps) {
   const inMonth = isSameMonth(date, currentMonth);
   const today = isToday(date);
-  const subLabel = getDaySubLabel(date);
+  const subLabel = getDaySubLabel?.(date);
+  const lunarAria = subLabel ? `，${subLabel}` : "";
 
   return (
     <button
@@ -33,19 +35,21 @@ export function DayCell({
         inMonth ? "in-month" : "out-month",
         today ? "today" : "",
         taskProgress ? "has-tasks" : "",
-        "has-sub-label",
+        subLabel ? "has-sub-label" : "",
       ]
         .filter(Boolean)
         .join(" ")}
       onClick={() => onSelect(date)}
-      aria-label={`${toDateKey(date)}，农历${subLabel}${taskProgress ? formatTaskAriaLabel(taskProgress) : ""}`}
+      aria-label={`${toDateKey(date)}${lunarAria}${taskProgress ? formatTaskAriaLabel(taskProgress) : ""}`}
       disabled={!inMonth}
     >
       <span className="day-cell-main">
         <span className="day-number">{date.getDate()}</span>
-        <span className="day-sub-label" aria-hidden="true">
-          {subLabel}
-        </span>
+        {subLabel ? (
+          <span className="day-sub-label" aria-hidden="true">
+            {subLabel}
+          </span>
+        ) : null}
         {taskProgress && (
           <span
             className="task-mark"
