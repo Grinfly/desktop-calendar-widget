@@ -1,8 +1,7 @@
 import {
+  addDays,
   addMonths,
   eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
   format,
   getMonth,
   getYear,
@@ -46,6 +45,10 @@ export function formatMonthTitle(date: Date): string {
   return format(date, "yyyy年M月", { locale: zhCN });
 }
 
+export function toMonthKey(date: Date): string {
+  return format(date, "yyyy-MM");
+}
+
 export function formatYearTitle(year: number): string {
   return `${year}年`;
 }
@@ -57,8 +60,7 @@ export function formatDayTitle(dateKey: string): string {
 
 export function getCalendarDays(month: Date): Date[] {
   const start = startOfWeek(startOfMonth(month), { weekStartsOn: 0 });
-  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 0 });
-  return eachDayOfInterval({ start, end });
+  return eachDayOfInterval({ start, end: addDays(start, 41) });
 }
 
 export function shiftMonth(month: Date, delta: number): Date {

@@ -1,5 +1,6 @@
 import { formatDayTitle, formatMonthTitle, isSameMonth } from "../lib/dates";
 import type { PinMode } from "../lib/types";
+import { MonthSummaryButton } from "./MonthSummaryButton";
 import { PinButton } from "./PinButton";
 import { SettingsButton } from "./SettingsButton";
 import { TodayMonthButton } from "./TodayMonthButton";
@@ -19,6 +20,8 @@ interface TitleBarProps {
   onBack?: () => void;
   onOpenDatePicker?: () => void;
   onGoToTodayMonth?: () => void;
+  onOpenMonthSummary?: () => void;
+  monthSummaryOpen?: boolean;
 }
 
 export function TitleBar({
@@ -35,6 +38,8 @@ export function TitleBar({
   onBack,
   onOpenDatePicker,
   onGoToTodayMonth,
+  onOpenMonthSummary,
+  monthSummaryOpen = false,
 }: TitleBarProps) {
   const isTaskView = !showMonthNav && dateKey !== undefined;
   const showBack = Boolean(onBack);
@@ -71,6 +76,12 @@ export function TitleBar({
               {formatMonthTitle(month)}
             </button>
           </Tooltip>
+          {onOpenMonthSummary ? (
+            <MonthSummaryButton
+              active={monthSummaryOpen}
+              onOpen={onOpenMonthSummary}
+            />
+          ) : null}
         </div>
       ) : isTaskView ? (
         <div

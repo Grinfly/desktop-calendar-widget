@@ -242,6 +242,19 @@ export function useTasks() {
     [updateData],
   );
 
+  const updateMonthSummary = useCallback(
+    (monthKey: string, text: string) => {
+      updateData((prev) => ({
+        ...prev,
+        monthSummaries: {
+          ...(prev.monthSummaries ?? {}),
+          [monthKey]: text,
+        },
+      }));
+    },
+    [updateData],
+  );
+
   const copyTasksFromDate = useCallback(
     (fromDateKey: string, toDateKey: string) => {
       if (fromDateKey === toDateKey) return;
@@ -296,5 +309,6 @@ export function useTasks() {
     updateTaskNote,
     copyTasksFromDate,
     getTaskProgressOnDate,
+    updateMonthSummary,
   };
 }

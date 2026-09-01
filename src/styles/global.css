@@ -286,6 +286,7 @@ button {
 .pin-button,
 .settings-button,
 .today-month-button,
+.month-summary-button,
 .title-bar-picker,
 .back-arrow,
 .day-cell,
@@ -331,13 +332,15 @@ button {
 
 .pin-button:hover,
 .settings-button:hover,
-.today-month-button:hover {
+.today-month-button:hover,
+.month-summary-button:hover {
   background: transparent;
 }
 
 .pin-button,
 .settings-button,
-.today-month-button {
+.today-month-button,
+.month-summary-button {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -393,7 +396,8 @@ button {
 }
 
 .settings-button.active,
-.today-month-button.active {
+.today-month-button.active,
+.month-summary-button.active {
   color: var(--accent);
 }
 
@@ -411,8 +415,15 @@ button {
 .weekday-row,
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
+}
+
+.days-grid {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
 }
 
 .weekday-label {
@@ -424,7 +435,11 @@ button {
 
 .day-cell {
   position: relative;
-  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -617,6 +632,11 @@ button {
 
 .picker-days-grid {
   flex: none;
+}
+
+.picker-days-grid .day-cell {
+  aspect-ratio: 1;
+  height: auto;
 }
 
 .settings-panel {
@@ -975,6 +995,59 @@ button {
   overflow: hidden;
 }
 
+.month-summary-panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 10px 10px;
+  overflow: hidden;
+}
+
+.month-summary-stats {
+  display: flex;
+  gap: 14px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.month-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.month-summary-stat-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.month-summary-stat-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.month-summary-textarea {
+  flex: 1;
+  min-height: 80px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(247, 243, 236, 0.9);
+  outline: none;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  resize: none;
+  overflow-y: auto;
+}
+
 .task-detail-label-row {
   display: flex;
   align-items: baseline;
@@ -1032,7 +1105,8 @@ button {
 }
 
 .task-detail-input:focus,
-.task-detail-textarea:focus {
+.task-detail-textarea:focus,
+.month-summary-textarea:focus {
   border-color: var(--accent);
 }
 

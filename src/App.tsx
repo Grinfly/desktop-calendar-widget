@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getTodayMonth, parseDateKey, toDateKey } from "./lib/dates";
+import { getTodayMonth, parseDateKey, toDateKey, toMonthKey } from "./lib/dates";
 import { useDateTick } from "./hooks/useDateTick";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
 import { DatePickerPanel } from "./components/DatePickerPanel";
+import { MonthSummaryPanel } from "./components/MonthSummaryPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { TaskList } from "./components/TaskList";
 import { ResizeHandles } from "./components/ResizeHandles";
@@ -35,13 +36,21 @@ function AppShell() {
     updateTaskNote,
     copyTasksFromDate,
     getTaskProgressOnDate,
+    updateMonthSummary,
   } = useTasks();
   const { loaded: extensionsLoaded, getDaySubLabel } = useExtensions();
 
   const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMonthSummary, setShowMonthSummary] = useState(false);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const closeDetail = useCallback(() => setDetailTaskId(null), []);
+  const closeMonthSummary = useCallback(() => setShowMonthSummary(false), []);
+  const openMonthSummary = useCallback(() => {
+    setPickerMode(null);
+    setShowSettings(false);
+    setShowMonthSummary(true);
+  }, []);
 
   useEffect(() => {
     if (!showSettings) return;
@@ -54,6 +63,18 @@ function AppShell() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [showSettings]);
+
+  useEffect(() => {
+    if (!showMonthSummary || showSettings || pickerMode !== null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowMonthSummary(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showMonthSummary, showSettings, pickerMode]);
 
   useEffect(() => {
     if (view !== "tasks" || pickerMode !== null || showSettings) return;
@@ -101,6 +122,8 @@ function AppShell() {
     setPickerMode(null);
     setShowSettings(true);
   };
+  const openMonthSummaryFromBar =
+    !showSettings && pickerMode !== "month" ? openMonthSummary : undefined;
   const closeSettings = () => setShowSettings(false);
   const goToTodayMonth = () => {
     setCurrentMonth(getTodayMonth());
@@ -167,6 +190,16 @@ function AppShell() {
       getDaySubLabel={getDaySubLabel}
       onClose={closePicker}
     />
+  ) : showMonthSummary ? (
+    <MonthSummaryPanel
+      key={toMonthKey(currentMonth)}
+      month={currentMonth}
+      tasks={data.tasks}
+      summary={(data.monthSummaries ?? {})[toMonthKey(currentMonth)] ?? ""}
+      onSummaryChange={(text) =>
+        updateMonthSummary(toMonthKey(currentMonth), text)
+      }
+    />
   ) : (
     <CalendarGrid
       month={currentMonth}
@@ -221,16 +254,23 @@ function AppShell() {
                   ? closeSettings
                   : pickerMode === "month"
                     ? closePicker
-                    : undefined
+                    : showMonthSummary
+                      ? closeMonthSummary
+                      : undefined
               }
               onOpenPicker={() => {
                 setShowSettings(false);
                 setPickerMode("month");
               }}
               onDoubleClick={() => {
-                if (selectedDate) selectDate(new Date(selectedDate));
+                if (selectedDate) {
+                  setShowMonthSummary(false);
+                  selectDate(new Date(selectedDate));
+                }
               }}
               onGoToTodayMonth={goToTodayMonth}
+              onOpenMonthSummary={openMonthSummaryFromBar}
+              monthSummaryOpen={showMonthSummary}
             />
             {mainContent}
           </>
