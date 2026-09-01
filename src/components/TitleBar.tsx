@@ -61,28 +61,35 @@ export function TitleBar({
   return (
     <header className="title-bar">
       {showMonthNav ? (
-        <div
-          className="title-bar-left"
-          onDoubleClick={(event) => event.stopPropagation()}
-        >
-          {backButton}
-          <Tooltip content="选择年月">
-            <button
-              type="button"
-              className="title-bar-label title-bar-picker"
-              onClick={onOpenPicker}
-              onMouseDown={(event) => event.stopPropagation()}
-            >
-              {formatMonthTitle(month)}
-            </button>
-          </Tooltip>
-          {onOpenMonthSummary ? (
-            <MonthSummaryButton
-              active={monthSummaryOpen}
-              onOpen={onOpenMonthSummary}
-            />
-          ) : null}
-        </div>
+        <>
+          <div
+            className="title-bar-left"
+            onDoubleClick={(event) => event.stopPropagation()}
+          >
+            {backButton}
+          </div>
+          <div
+            className="title-bar-center"
+            onDoubleClick={(event) => event.stopPropagation()}
+          >
+            <Tooltip content="选择年月">
+              <button
+                type="button"
+                className="title-bar-label title-bar-picker"
+                onClick={onOpenPicker}
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                {formatMonthTitle(month)}
+              </button>
+            </Tooltip>
+            {onOpenMonthSummary ? (
+              <MonthSummaryButton
+                active={monthSummaryOpen}
+                onOpen={onOpenMonthSummary}
+              />
+            ) : null}
+          </div>
+        </>
       ) : isTaskView ? (
         <div
           className="title-bar-left"

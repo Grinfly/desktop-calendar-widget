@@ -210,6 +210,17 @@ button {
   overflow: hidden;
 }
 
+.title-bar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  max-width: calc(100% - 108px);
+}
+
 .title-bar-drag-area {
   flex: 1;
   min-width: 12px;
@@ -277,6 +288,11 @@ button {
   transition: background 0.15s ease;
 }
 
+.title-bar-left .title-bar-picker,
+.title-bar-center .title-bar-picker {
+  padding-right: 0;
+}
+
 .title-bar-picker:hover {
   background: rgba(196, 92, 62, 0.1);
   color: var(--accent);
@@ -339,8 +355,7 @@ button {
 
 .pin-button,
 .settings-button,
-.today-month-button,
-.month-summary-button {
+.today-month-button {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -355,6 +370,30 @@ button {
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.month-summary-button {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  margin-left: -4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.month-summary-button .title-action-icon {
+  width: 12px;
+  height: 12px;
+  font-size: 11px;
 }
 
 .title-action-icon {
