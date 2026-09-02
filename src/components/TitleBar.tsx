@@ -67,11 +67,6 @@ export function TitleBar({
             onDoubleClick={(event) => event.stopPropagation()}
           >
             {backButton}
-          </div>
-          <div
-            className="title-bar-center"
-            onDoubleClick={(event) => event.stopPropagation()}
-          >
             <Tooltip content="选择年月">
               <button
                 type="button"
