@@ -375,6 +375,7 @@ mod tests {
         assert_eq!(manifest.name, "农历");
         let source = read_entry_source(&dest, "lunar").unwrap();
         assert!(source.contains("getDaySubLabel"));
+        assert!(source.contains("getDayBadge"));
         let _ = fs::remove_dir_all(&root);
     }
 }

@@ -141,6 +141,13 @@ export function useTasks() {
     [updateSettings],
   );
 
+  const setShowWorkRestBadges = useCallback(
+    (show: boolean) => {
+      updateSettings({ showWorkRestBadges: show });
+    },
+    [updateSettings],
+  );
+
   const addTask = useCallback(
     (dateKey: string, title: string) => {
       const trimmed = title.trim();
@@ -301,6 +308,7 @@ export function useTasks() {
     goToCalendar,
     togglePinMode,
     setBackgroundOpacity,
+    setShowWorkRestBadges,
     addTask,
     toggleTask,
     deleteTask,

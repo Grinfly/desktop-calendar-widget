@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getTodayMonth, parseDateKey, toDateKey, toMonthKey } from "./lib/dates";
+import {
+  getTodayMonth,
+  parseDateKey,
+  shiftMonth,
+  toDateKey,
+  toMonthKey,
+} from "./lib/dates";
 import { useDateTick } from "./hooks/useDateTick";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
@@ -28,6 +34,7 @@ function AppShell() {
     goToCalendar,
     togglePinMode,
     setBackgroundOpacity,
+    setShowWorkRestBadges,
     addTask,
     toggleTask,
     deleteTask,
@@ -38,7 +45,13 @@ function AppShell() {
     getTaskProgressOnDate,
     updateMonthSummary,
   } = useTasks();
-  const { loaded: extensionsLoaded, getDaySubLabel } = useExtensions();
+  const { loaded: extensionsLoaded, manifests, getDaySubLabel, getDayBadge } =
+    useExtensions();
+  const dayBadge =
+    (data.settings.showWorkRestBadges ?? true) &&
+    manifests.some((manifest) => manifest.id === "lunar")
+      ? getDayBadge
+      : undefined;
 
   const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -92,6 +105,36 @@ function AppShell() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [view, pickerMode, showSettings, detailTaskId, goToCalendar]);
 
+  useEffect(() => {
+    if (
+      view !== "calendar" ||
+      showSettings ||
+      showMonthSummary ||
+      pickerMode !== null
+    ) {
+      return;
+    }
+
+    let locked = false;
+    let unlockTimer = 0;
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      if (locked) return;
+      locked = true;
+      setCurrentMonth((month) => shiftMonth(month, event.deltaY > 0 ? 1 : -1));
+      unlockTimer = window.setTimeout(() => {
+        locked = false;
+      }, 520);
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.clearTimeout(unlockTimer);
+    };
+  }, [view, showSettings, showMonthSummary, pickerMode, setCurrentMonth]);
+
   if (!loaded || !extensionsLoaded) {
     return (
       <div className="widget-shell loading">
@@ -135,6 +178,8 @@ function AppShell() {
     <SettingsPanel
       backgroundOpacity={data.settings.backgroundOpacity ?? 100}
       onBackgroundOpacityChange={setBackgroundOpacity}
+      showWorkRestBadges={data.settings.showWorkRestBadges ?? true}
+      onShowWorkRestBadgesChange={setShowWorkRestBadges}
       onClose={closeSettings}
     />
   ) : showTaskView ? (
@@ -153,6 +198,7 @@ function AppShell() {
           selectDate(date);
         }}
         getDaySubLabel={getDaySubLabel}
+        getDayBadge={dayBadge}
         onClose={closePicker}
       />
     ) : (
@@ -188,6 +234,7 @@ function AppShell() {
       anchorDate={currentMonth}
       onSelectMonth={setCurrentMonth}
       getDaySubLabel={getDaySubLabel}
+      getDayBadge={dayBadge}
       onClose={closePicker}
     />
   ) : showMonthSummary ? (
@@ -205,6 +252,7 @@ function AppShell() {
       month={currentMonth}
       getTaskProgressOnDate={getTaskProgressOnDate}
       getDaySubLabel={getDaySubLabel}
+      getDayBadge={dayBadge}
       onSelectDate={selectDate}
     />
   );

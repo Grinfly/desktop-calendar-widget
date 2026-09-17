@@ -1,8 +1,9 @@
-import { Solar } from "lunar-javascript";
+import { HolidayUtil, Solar } from "lunar-javascript";
 
 const FESTIVAL_SHORT_NAMES: Record<string, string> = {
   元旦节: "元旦",
   国庆节: "国庆",
+  劳动节: "劳动",
   端午节: "端午",
   七夕节: "七夕",
   重阳节: "重阳",
@@ -25,6 +26,17 @@ function shortenFestival(name: string): string {
 function pickFestival(names: string[]): string | undefined {
   const first = names.find(Boolean);
   return first ? shortenFestival(first) : undefined;
+}
+
+/** 右上角角标：法定放假「休」、调休上班「班」 */
+export function getDayBadge(date: Date): "work" | "rest" | undefined {
+  const holiday = HolidayUtil.getHoliday(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+  );
+  if (!holiday) return undefined;
+  return holiday.isWork() ? "work" : "rest";
 }
 
 /** 日期下方副标题：节气/节日优先，否则农历月日 */

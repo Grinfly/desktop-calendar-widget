@@ -174,6 +174,8 @@ button {
   min-width: 0;
   min-height: 0;
   isolation: isolate;
+  container-type: inline-size;
+  container-name: widget;
 }
 
 .widget-shell.loading .widget-card {
@@ -285,6 +287,40 @@ button {
 .title-bar-picker:hover {
   background: rgba(196, 92, 62, 0.1);
   color: var(--accent);
+}
+
+.title-month-text {
+  display: inline-block;
+}
+
+.title-month-next {
+  animation: title-month-next 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.title-month-prev {
+  animation: title-month-prev 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes title-month-next {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes title-month-prev {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .nav-button,
@@ -449,11 +485,43 @@ button {
   gap: 4px;
 }
 
+.days-viewport {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.days-track {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  transform: translate3d(0, 0, 0);
+}
+
+.days-track[data-wide="true"] {
+  width: 200%;
+}
+
+.days-track.is-sliding {
+  transition: transform 0.5s cubic-bezier(0.16, 0.84, 0.32, 1);
+}
+
 .days-grid {
   flex: 1;
   min-width: 0;
   min-height: 0;
   grid-template-rows: repeat(6, minmax(0, 1fr));
+}
+
+.days-track .days-grid {
+  flex: 0 0 100%;
+  height: 100%;
+}
+
+.days-track[data-wide="true"] .days-grid {
+  flex-basis: 50%;
 }
 
 .weekday-label {
@@ -509,6 +577,80 @@ button {
   margin-top: -1px;
 }
 
+.day-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.day-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.day-badge-label {
+  display: none;
+}
+
+.day-badge-rest .day-badge-dot {
+  background: #e25c4a;
+}
+
+.day-badge-work .day-badge-dot {
+  background: #5b7db8;
+}
+
+@container widget (min-width: 360px) {
+  .day-badge {
+    top: 2px;
+    right: 2px;
+  }
+
+  .day-badge-dot {
+    display: none;
+  }
+
+  .day-badge-label {
+    display: block;
+    font-size: 7px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 1px 2px;
+    border-radius: 3px;
+    color: #fff;
+  }
+
+  .day-badge-rest .day-badge-label {
+    background: #e25c4a;
+  }
+
+  .day-badge-work .day-badge-label {
+    background: #5b7db8;
+  }
+}
+
+.day-cell.holiday-rest {
+  background: rgba(226, 92, 74, 0.1);
+}
+
+.day-cell.holiday-work {
+  background: rgba(91, 125, 184, 0.12);
+}
+
+.day-cell.holiday-rest.in-month:hover {
+  background: rgba(226, 92, 74, 0.16);
+}
+
+.day-cell.holiday-work.in-month:hover {
+  background: rgba(91, 125, 184, 0.18);
+}
+
 .task-mark {
   display: block;
   width: 14px;
@@ -529,8 +671,15 @@ button {
 }
 
 .day-cell.out-month {
-  opacity: 0.28;
   cursor: default;
+}
+
+.day-cell.out-month .day-cell-main {
+  opacity: 0.32;
+}
+
+.day-cell.out-month .day-badge {
+  opacity: 0.9;
 }
 
 .day-cell.today::before {
@@ -778,6 +927,12 @@ button {
   gap: 8px;
 }
 
+.settings-ext-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .settings-ext-row {
   display: flex;
   align-items: flex-start;
@@ -801,6 +956,21 @@ button {
   font-size: 11px;
   line-height: 1.4;
   color: var(--muted);
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.settings-toggle input {
+  accent-color: var(--accent);
+  margin: 0;
 }
 
 .settings-version {
@@ -1391,5 +1561,14 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .day-cell {
     transition: none;
+  }
+
+  .days-track.is-sliding {
+    transition: none;
+  }
+
+  .title-month-next,
+  .title-month-prev {
+    animation: none;
   }
 }

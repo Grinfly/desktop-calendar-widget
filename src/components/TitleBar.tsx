@@ -1,4 +1,11 @@
-import { formatDayTitle, formatMonthTitle, isSameMonth } from "../lib/dates";
+import { useLayoutEffect, useRef } from "react";
+
+import {
+  formatDayTitle,
+  formatMonthTitle,
+  isSameMonth,
+  toMonthKey,
+} from "../lib/dates";
 import type { PinMode } from "../lib/types";
 import { MonthSummaryButton } from "./MonthSummaryButton";
 import { PinButton } from "./PinButton";
@@ -44,6 +51,17 @@ export function TitleBar({
   const isTaskView = !showMonthNav && dateKey !== undefined;
   const showBack = Boolean(onBack);
   const isTodayMonth = isSameMonth(month, new Date());
+  const monthKey = toMonthKey(month);
+  const prevMonthKey = useRef(monthKey);
+  const monthSlide =
+    monthKey === prevMonthKey.current
+      ? ""
+      : monthKey > prevMonthKey.current
+        ? "next"
+        : "prev";
+  useLayoutEffect(() => {
+    prevMonthKey.current = monthKey;
+  }, [monthKey]);
 
   const backButton = showBack ? (
     <Tooltip content="返回">
@@ -74,7 +92,12 @@ export function TitleBar({
                 onClick={onOpenPicker}
                 onMouseDown={(event) => event.stopPropagation()}
               >
-                {formatMonthTitle(month)}
+                <span
+                  key={monthKey}
+                  className={`title-month-text${monthSlide ? ` title-month-${monthSlide}` : ""}`}
+                >
+                  {formatMonthTitle(month)}
+                </span>
               </button>
             </Tooltip>
             {onOpenMonthSummary ? (

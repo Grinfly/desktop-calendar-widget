@@ -31,6 +31,7 @@ export interface AppSettings {
   lastView: AppView;
   selectedDate: string;
   backgroundOpacity: number;
+  showWorkRestBadges: boolean;
 }
 
 export interface AppData {
@@ -46,6 +47,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastView: "calendar",
   selectedDate: "",
   backgroundOpacity: 100,
+  showWorkRestBadges: true,
 };
 
 export const DEFAULT_APP_DATA: AppData = {

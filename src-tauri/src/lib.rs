@@ -1,5 +1,6 @@
 mod desktop;
 mod extensions;
+mod holidays;
 mod storage;
 
 use std::sync::Mutex;
@@ -449,7 +450,8 @@ pub fn run() {
             extensions::list_extensions,
             extensions::install_extension,
             extensions::uninstall_extension,
-            extensions::read_extension_entry
+            extensions::read_extension_entry,
+            holidays::load_work_rest_days
         ])
         .setup(|app| {
             let initial_pin_mode = read_pin_mode();

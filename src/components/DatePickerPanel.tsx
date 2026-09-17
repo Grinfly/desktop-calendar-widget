@@ -14,6 +14,8 @@ import {
   WEEKDAY_LABELS,
   withYearMonth,
 } from "../lib/dates";
+import type { DayBadge } from "../extensions/types";
+import { DayBadgeMark } from "./DayCell";
 import { Tooltip } from "./Tooltip";
 
 type PickerMode = "month" | "date";
@@ -25,6 +27,7 @@ interface DatePickerPanelProps {
   onSelectMonth: (date: Date) => void;
   onSelectDate?: (date: Date) => void;
   getDaySubLabel?: (date: Date) => string | undefined;
+  getDayBadge?: (date: Date) => DayBadge | undefined;
   onClose: () => void;
 }
 
@@ -35,6 +38,7 @@ export function DatePickerPanel({
   onSelectMonth,
   onSelectDate,
   getDaySubLabel,
+  getDayBadge,
   onClose,
 }: DatePickerPanelProps) {
   const [viewYear, setViewYear] = useState(getYear(anchorDate));
@@ -142,6 +146,7 @@ export function DatePickerPanel({
               const selected =
                 selectedDate !== undefined && isSameDay(day, selectedDate);
               const subLabel = getDaySubLabel?.(day);
+              const badge = getDayBadge?.(day);
               return (
                 <button
                   key={toDateKey(day)}
@@ -153,12 +158,15 @@ export function DatePickerPanel({
                     isToday(day) ? "today" : "",
                     selected ? "selected" : "",
                     subLabel ? "has-sub-label" : "",
+                    badge === "rest" ? "holiday-rest" : "",
+                    badge === "work" ? "holiday-work" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
                   onClick={() => handleDayPick(day)}
                   disabled={!inMonth}
                 >
+                  <DayBadgeMark badge={badge} />
                   <span className="day-cell-main">
                     <span className="day-number">{day.getDate()}</span>
                     {subLabel ? (

@@ -7,12 +7,16 @@ import { ConfirmDialog } from "./ConfirmDialog";
 interface SettingsPanelProps {
   backgroundOpacity: number;
   onBackgroundOpacityChange: (value: number) => void;
+  showWorkRestBadges: boolean;
+  onShowWorkRestBadgesChange: (value: boolean) => void;
   onClose: () => void;
 }
 
 export function SettingsPanel({
   backgroundOpacity,
   onBackgroundOpacityChange,
+  showWorkRestBadges,
+  onShowWorkRestBadgesChange,
   onClose,
 }: SettingsPanelProps) {
   const { manifests, install, uninstall, error } = useExtensions();
@@ -81,27 +85,41 @@ export function SettingsPanel({
         ) : (
           <ul className="settings-ext-list">
             {manifests.map((manifest) => (
-              <li key={manifest.id} className="settings-ext-row">
-                <div className="settings-ext-copy">
-                  <span className="settings-ext-name">{manifest.name}</span>
-                  {manifest.description ? (
-                    <span className="settings-ext-desc">
-                      {manifest.description}
-                    </span>
-                  ) : null}
+              <li key={manifest.id} className="settings-ext-item">
+                <div className="settings-ext-row">
+                  <div className="settings-ext-copy">
+                    <span className="settings-ext-name">{manifest.name}</span>
+                    {manifest.description ? (
+                      <span className="settings-ext-desc">
+                        {manifest.description}
+                      </span>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    className="settings-action-button danger"
+                    onClick={() =>
+                      setPendingUninstall({
+                        id: manifest.id,
+                        name: manifest.name,
+                      })
+                    }
+                  >
+                    卸载
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="settings-action-button danger"
-                  onClick={() =>
-                    setPendingUninstall({
-                      id: manifest.id,
-                      name: manifest.name,
-                    })
-                  }
-                >
-                  卸载
-                </button>
+                {manifest.id === "lunar" ? (
+                  <label className="settings-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showWorkRestBadges}
+                      onChange={(event) =>
+                        onShowWorkRestBadgesChange(event.target.checked)
+                      }
+                    />
+                    显示班休
+                  </label>
+                ) : null}
               </li>
             ))}
           </ul>
