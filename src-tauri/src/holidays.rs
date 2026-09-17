@@ -65,7 +65,7 @@ fn fetch_year(year: i32) -> Result<Vec<YearDay>, String> {
     let mut last_error = "无法获取节假日数据".to_string();
     for url in urls {
         match ureq::get(&url)
-            .set("User-Agent", "CanDo/0.1.1")
+            .set("User-Agent", "CanDo/0.1.2")
             .timeout(Duration::from_secs(8))
             .call()
         {

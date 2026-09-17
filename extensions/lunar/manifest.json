@@ -1,7 +1,7 @@
 {
   "id": "lunar",
   "name": "农历",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "日期下方显示农历、节气、节日和调休班休",
   "entry": "index.js"
 }
