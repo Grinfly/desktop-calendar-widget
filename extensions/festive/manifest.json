@@ -1,7 +1,0 @@
-{
-  "id": "festive",
-  "name": "节日彩蛋",
-  "version": "0.1.3",
-  "description": "除夕飘雪、春节灯笼等节日当天在背景点缀对应动效",
-  "entry": "index.js"
-}

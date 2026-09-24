@@ -11,7 +11,6 @@
     "tauri": "tauri",
     "build:windows": "scripts\\build-windows.bat",
     "build:ext:lunar": "vite build --config extensions/lunar/vite.config.ts && node scripts/pack-lunar-ext.mjs",
-    "build:ext:festive": "vite build --config extensions/festive/vite.config.ts && node scripts/pack-festive-ext.mjs",
     "build:ext:world-invasion": "vite build --config extensions/world-invasion/vite.config.ts && node scripts/pack-world-invasion-ext.mjs"
   },
   "dependencies": {
