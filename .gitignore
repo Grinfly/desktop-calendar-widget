@@ -23,3 +23,5 @@ dist-extensions
 *.njsproj
 *.sln
 *.sw?
+preview-effects.html
+preview/

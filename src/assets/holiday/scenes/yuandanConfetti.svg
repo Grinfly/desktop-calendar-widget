@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice">
+  <title>元旦 · 彩纸屑</title>
+  <defs>
+    <rect id="c1" x="-3" y="-5" width="6" height="10" rx="1" fill="#c45c3e"/>
+    <rect id="c2" x="-3" y="-5" width="6" height="10" rx="1" fill="#5b7db8"/>
+    <rect id="c3" x="-3" y="-5" width="6" height="10" rx="1" fill="#d9a441"/>
+    <rect id="c4" x="-3" y="-5" width="6" height="10" rx="1" fill="#6d9a6d"/>
+    <rect id="c5" x="-3" y="-5" width="6" height="10" rx="1" fill="#c46a7a"/>
+    <g id="burst" opacity="0.45">
+      <path d="M0-26L0-14M0 26L0 14M-26 0L-14 0M26 0L14 0M-18-18L-10-10M18 18L10 10M18-18L10-10M-18 18L-10 10" stroke="#d9a441" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <g opacity="0.4"><use href="#burst" transform="translate(58,120) scale(0.9)"/><use href="#burst" transform="translate(244,268) scale(1.1)"/></g>
+  <g>
+    <g transform="translate(24,-20)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-14,140;10,250;-8,400" dur="6s" begin="-0.5s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;180;360;540" dur="6s" begin="-0.5s" repeatCount="indefinite"/><use href="#c1"/></g></g></g>
+    <g transform="translate(60,-30)"><g><animateTransform attributeName="transform" type="translate" values="0,0;12,130;-10,260;8,400" dur="5.2s" begin="-3s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-200;-400;-600" dur="5.2s" begin="-3s" repeatCount="indefinite"/><use href="#c2"/></g></g></g>
+    <g transform="translate(96,-24)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-10,150;14,260;-12,400" dur="6.6s" begin="-1.4s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;220;440;660" dur="6.6s" begin="-1.4s" repeatCount="indefinite"/><use href="#c3"/></g></g></g>
+    <g transform="translate(132,-30)"><g><animateTransform attributeName="transform" type="translate" values="0,0;16,140;-12,250;10,400" dur="5.6s" begin="-4.2s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-160;-320;-480" dur="5.6s" begin="-4.2s" repeatCount="indefinite"/><use href="#c4"/></g></g></g>
+    <g transform="translate(168,-22)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-12,135;10,255;-14,400" dur="6.2s" begin="-2.1s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;200;400;600" dur="6.2s" begin="-2.1s" repeatCount="indefinite"/><use href="#c5"/></g></g></g>
+    <g transform="translate(204,-28)"><g><animateTransform attributeName="transform" type="translate" values="0,0;10,145;-14,260;12,400" dur="5.4s" begin="-5s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-180;-360;-540" dur="5.4s" begin="-5s" repeatCount="indefinite"/><use href="#c1"/></g></g></g>
+    <g transform="translate(240,-24)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-16,140;12,250;-10,400" dur="6.8s" begin="-1s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;240;480;720" dur="6.8s" begin="-1s" repeatCount="indefinite"/><use href="#c2"/></g></g></g>
+    <g transform="translate(276,-30)"><g><animateTransform attributeName="transform" type="translate" values="0,0;14,135;-10,255;8,400" dur="5.9s" begin="-3.6s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-140;-280;-420" dur="5.9s" begin="-3.6s" repeatCount="indefinite"/><use href="#c3"/></g></g></g>
+    <g transform="translate(44,-26)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-8,150;12,260;-10,400" dur="7.1s" begin="-6.3s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;260;520;780" dur="7.1s" begin="-6.3s" repeatCount="indefinite"/><use href="#c4"/></g></g></g>
+    <g transform="translate(220,-22)"><g><animateTransform attributeName="transform" type="translate" values="0,0;12,145;-16,255;14,400" dur="6.4s" begin="-2.8s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-220;-440;-660" dur="6.4s" begin="-2.8s" repeatCount="indefinite"/><use href="#c5"/></g></g></g>
+    <g transform="translate(110,-30)"><g><animateTransform attributeName="transform" type="translate" values="0,0;-14,138;12,252;-12,400" dur="6.1s" begin="-4.8s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;190;380;570" dur="6.1s" begin="-4.8s" repeatCount="indefinite"/><use href="#c2"/></g></g></g>
+    <g transform="translate(258,-26)"><g><animateTransform attributeName="transform" type="translate" values="0,0;11,142;-13,256;11,400" dur="6.5s" begin="-0.8s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-210;-420;-630" dur="6.5s" begin="-0.8s" repeatCount="indefinite"/><use href="#c4"/></g></g></g>
+  </g>
+</svg>

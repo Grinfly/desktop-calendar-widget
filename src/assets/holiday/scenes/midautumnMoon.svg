@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice">
+  <title>中秋 · 月晕 + 暖色灯笼</title>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2b3450" stop-opacity="0.26"/>
+      <stop offset="60%" stop-color="#3a445f" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#3a445f" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff4cc" stop-opacity="0.6"/>
+      <stop offset="45%" stop-color="#f4d98a" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#f4d98a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moong" cx="38%" cy="34%" r="70%">
+      <stop offset="0%" stop-color="#fffdf2"/>
+      <stop offset="70%" stop-color="#f4e2a4"/>
+      <stop offset="100%" stop-color="#dcc06a"/>
+    </radialGradient>
+    <radialGradient id="lglow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc46a" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#ffc46a" stop-opacity="0"/>
+    </radialGradient>
+    <g id="wlantern">
+      <line x1="0" y1="0" x2="0" y2="11" stroke="#9a6a30" stroke-width="1.3" stroke-linecap="round"/>
+      <rect x="-8" y="10" width="16" height="3.6" rx="1.8" fill="#f2cd76"/>
+      <ellipse cx="0" cy="27" rx="13" ry="16" fill="#eaa93c"/>
+      <ellipse cx="0" cy="27" rx="9" ry="12" fill="#f7c25e"/>
+      <ellipse cx="0" cy="25" rx="6" ry="8.5" fill="#ffe09a" opacity="0.75"/>
+      <path d="M-12 19c8 4 16 4 24 0" fill="none" stroke="#fff3ce" stroke-width="1" opacity="0.9"/>
+      <rect x="-7" y="41" width="14" height="3.2" rx="1.6" fill="#f2cd76"/>
+      <line x1="0" y1="44.2" x2="0" y2="51" stroke="#d9ab48" stroke-width="1.2" stroke-linecap="round"/>
+      <circle cx="0" cy="53" r="2" fill="#f2cd76"/>
+    </g>
+    <g id="cloud" fill="#e8dcb4" opacity="0.32">
+      <ellipse cx="-18" cy="0" rx="16" ry="7"/>
+      <ellipse cx="0" cy="-3" rx="18" ry="9"/>
+      <ellipse cx="18" cy="1" rx="15" ry="7"/>
+    </g>
+  </defs>
+  <rect x="0" y="0" width="300" height="360" fill="url(#night)"/>
+  <circle cx="210" cy="70" r="106" fill="url(#halo)">
+    <animate attributeName="opacity" values="0.55;0.92;0.55" dur="5.5s" repeatCount="indefinite"/>
+  </circle>
+  <g transform="translate(210,70)">
+    <circle r="40" fill="url(#moong)"><animate attributeName="r" values="40;42;40" dur="5.5s" repeatCount="indefinite"/></circle>
+    <circle cx="-12" cy="-9" r="6.4" fill="#e6cf92" opacity="0.46"/>
+    <circle cx="9" cy="13" r="4.6" fill="#e6cf92" opacity="0.38"/>
+    <circle cx="15" cy="-17" r="3.2" fill="#e6cf92" opacity="0.34"/>
+  </g>
+  <g opacity="0.4"><use href="#cloud" transform="translate(60,222) scale(1.1)"/><use href="#cloud" transform="translate(196,300) scale(1.3)"/><use href="#cloud" transform="translate(250,196) scale(0.8)"/></g>
+  <circle cx="140" cy="228" r="150" fill="url(#lglow)" opacity="0.55"/>
+  <g opacity="0.94">
+    <g transform="translate(46,132)"><g><animateTransform attributeName="transform" type="rotate" values="-7 0 0;6 0 0;-7 0 0" dur="4.8s" begin="-0.5s" repeatCount="indefinite"/><use href="#wlantern"/></g></g>
+    <g transform="translate(112,182)"><g><animateTransform attributeName="transform" type="rotate" values="5 0 0;-6 0 0;5 0 0" dur="5.4s" begin="-1.6s" repeatCount="indefinite"/><use href="#wlantern" transform="scale(1.22)"/></g></g>
+    <g transform="translate(188,240)"><g><animateTransform attributeName="transform" type="rotate" values="-6 0 0;7 0 0;-6 0 0" dur="4.3s" begin="-2.4s" repeatCount="indefinite"/><use href="#wlantern"/></g></g>
+    <g transform="translate(258,168)"><g><animateTransform attributeName="transform" type="rotate" values="6 0 0;-5 0 0;6 0 0" dur="5s" begin="-1s" repeatCount="indefinite"/><use href="#wlantern" transform="scale(0.92)"/></g></g>
+    <g transform="translate(288,278)"><g><animateTransform attributeName="transform" type="rotate" values="-5 0 0;6 0 0;-5 0 0" dur="4.6s" begin="-3.4s" repeatCount="indefinite"/><use href="#wlantern" transform="scale(0.85)"/></g></g>
+    <g transform="translate(24,282)"><g><animateTransform attributeName="transform" type="rotate" values="5 0 0;-6 0 0;5 0 0" dur="5.2s" begin="-2s" repeatCount="indefinite"/><use href="#wlantern" transform="scale(0.9)"/></g></g>
+  </g>
+</svg>

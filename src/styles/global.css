@@ -6,6 +6,7 @@
   --bg: rgba(var(--bg-rgb), var(--bg-alpha));
   --text: #1c1a17;
   --muted: #7a7468;
+  --sub-label: #9a7d68;
   --accent: #c45c3e;
   --border: #e5dfd4;
   --shadow: 0 10px 28px rgba(28, 26, 23, 0.12);
@@ -173,6 +174,7 @@ button {
   overflow: hidden;
   min-width: 0;
   min-height: 0;
+  position: relative;
   isolation: isolate;
   container-type: inline-size;
   container-name: widget;
@@ -183,6 +185,16 @@ button {
   align-items: center;
   justify-content: center;
   color: var(--muted);
+}
+
+.widget-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .title-bar {
@@ -565,7 +577,7 @@ button {
 .day-sub-label {
   font-size: 8px;
   line-height: 1;
-  color: #9a7d68;
+  color: var(--sub-label);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -924,13 +936,19 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .settings-ext-item {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding-bottom: 6px;
+}
+
+.settings-ext-item + .settings-ext-item {
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(120, 85, 65, 0.32);
 }
 
 .settings-ext-row {
@@ -966,6 +984,18 @@ button {
   color: var(--text);
   cursor: pointer;
   -webkit-app-region: no-drag;
+}
+
+.settings-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.settings-toggle:has(input:disabled) {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .settings-toggle input {
@@ -1558,6 +1588,35 @@ button {
   filter: brightness(0.95);
 }
 
+.holiday-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.holiday-fx-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.holiday-fx::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(247, 243, 236, 0.18) 0%,
+    rgba(247, 243, 236, 0.46) 42%,
+    rgba(247, 243, 236, 0.28) 100%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
   .day-cell {
     transition: none;
@@ -1571,4 +1630,5 @@ button {
   .title-month-prev {
     animation: none;
   }
+
 }

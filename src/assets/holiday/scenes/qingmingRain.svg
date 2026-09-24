@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice">
+  <title>清明 · 斜向细雨</title>
+  <defs>
+    <line id="drop" x1="0" y1="-22" x2="-12" y2="18" stroke="#6f92ad" stroke-width="1.9" stroke-linecap="round" stroke-opacity="0.7"/>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4d4dc" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#c4d4dc" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="300" height="240" fill="url(#sky)"/>
+  <path d="M0 250Q56 214 116 240T210 232 300 246V360H0Z" fill="#b3c6cc" opacity="0.5"/>
+  <path d="M0 288Q66 258 136 282T300 274V360H0Z" fill="#9fb6bf" opacity="0.55"/>
+  <path d="M0 324Q84 302 168 322T300 314V360H0Z" fill="#8aa4af" opacity="0.6"/>
+  <g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.35s" begin="-0.1s" repeatCount="indefinite"/><g transform="translate(14,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.55s" begin="-0.9s" repeatCount="indefinite"/><g transform="translate(46,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.45s" begin="-0.4s" repeatCount="indefinite"/><g transform="translate(78,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.7s" begin="-1.3s" repeatCount="indefinite"/><g transform="translate(110,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.4s" begin="-0.6s" repeatCount="indefinite"/><g transform="translate(142,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.6s" begin="-1.1s" repeatCount="indefinite"/><g transform="translate(174,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.5s" begin="-0.2s" repeatCount="indefinite"/><g transform="translate(206,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.3s" begin="-1s" repeatCount="indefinite"/><g transform="translate(238,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.65s" begin="-0.5s" repeatCount="indefinite"/><g transform="translate(270,0)"><use href="#drop"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.85s" begin="-1.5s" repeatCount="indefinite"/><g transform="translate(30,0)"><use href="#drop" stroke-width="1.3" stroke-opacity="0.42" transform="scale(0.7)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.95s" begin="-0.8s" repeatCount="indefinite"/><g transform="translate(94,0)"><use href="#drop" stroke-width="1.3" stroke-opacity="0.42" transform="scale(0.7)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.75s" begin="-1.4s" repeatCount="indefinite"/><g transform="translate(158,0)"><use href="#drop" stroke-width="1.3" stroke-opacity="0.42" transform="scale(0.7)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.9s" begin="-0.3s" repeatCount="indefinite"/><g transform="translate(222,0)"><use href="#drop" stroke-width="1.3" stroke-opacity="0.42" transform="scale(0.7)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.5s" begin="-1.2s" repeatCount="indefinite"/><g transform="translate(286,0)"><use href="#drop" stroke-width="1.3" stroke-opacity="0.42" transform="scale(0.7)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.6s" begin="-0.7s" repeatCount="indefinite"/><g transform="translate(126,0)"><use href="#drop" stroke-width="1.5" stroke-opacity="0.55" transform="scale(0.85)"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0,-40;-90,420" dur="1.42s" begin="-1.6s" repeatCount="indefinite"/><g transform="translate(254,0)"><use href="#drop" stroke-width="1.5" stroke-opacity="0.55" transform="scale(0.85)"/></g></g>
+  </g>
+</svg>

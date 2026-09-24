@@ -16,13 +16,15 @@ import {
   uninstallExtension,
   withHostBadges,
 } from "./loader";
-import type { DayBadge, ExtensionManifest } from "./types";
+import type { DayAtmosphere, DayBadge, ExtensionManifest, WorldEvent } from "./types";
 
 interface ExtensionContextValue {
   loaded: boolean;
   manifests: ExtensionManifest[];
   getDaySubLabel: (date: Date) => string | undefined;
   getDayBadge: (date: Date) => DayBadge | undefined;
+  getDayAtmosphere: (date: Date) => DayAtmosphere | undefined;
+  worldEvent: WorldEvent | undefined;
   install: () => Promise<void>;
   uninstall: (id: string) => Promise<void>;
   error: string | null;
@@ -38,6 +40,10 @@ function noneBadge(_date: Date): DayBadge | undefined {
   return undefined;
 }
 
+function noneAtmosphere(_date: Date): DayAtmosphere | undefined {
+  return undefined;
+}
+
 export function ExtensionProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const [manifests, setManifests] = useState<ExtensionManifest[]>([]);
@@ -47,8 +53,13 @@ export function ExtensionProvider({ children }: { children: ReactNode }) {
   const [getDayBadge, setGetDayBadge] = useState<
     (date: Date) => DayBadge | undefined
   >(() => noneBadge);
+  const [getDayAtmosphere, setGetDayAtmosphere] = useState<
+    (date: Date) => DayAtmosphere | undefined
+  >(() => noneAtmosphere);
+  const [worldEvent, setWorldEvent] = useState<WorldEvent | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const moduleBadgeRef = useRef<(date: Date) => DayBadge | undefined>(noneBadge);
+  const getWorldEventRef = useRef<() => WorldEvent | undefined>(() => undefined);
 
   useEffect(() => {
     let active = true;
@@ -61,9 +72,12 @@ export function ExtensionProvider({ children }: { children: ReactNode }) {
         ]);
         if (!active) return;
         moduleBadgeRef.current = result.getDayBadge;
+        getWorldEventRef.current = result.getWorldEvent;
         setManifests(result.manifests);
         setGetDaySubLabel(() => result.getDaySubLabel);
         setGetDayBadge(() => withHostBadges(hostDays, result.getDayBadge));
+        setGetDayAtmosphere(() => result.getDayAtmosphere);
+        setWorldEvent(result.getWorldEvent());
       } catch (cause) {
         if (!active) return;
         setError(cause instanceof Error ? cause.message : String(cause));
@@ -74,6 +88,19 @@ export function ExtensionProvider({ children }: { children: ReactNode }) {
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  // 监听扩展的主动广播事件，0ms 立即更新特效，辅以 10 秒轮询
+  useEffect(() => {
+    const handleUpdate = () => {
+      setWorldEvent(getWorldEventRef.current());
+    };
+    window.addEventListener("world-event-change", handleUpdate);
+    const id = window.setInterval(handleUpdate, 10_000);
+    return () => {
+      window.removeEventListener("world-event-change", handleUpdate);
+      window.clearInterval(id);
     };
   }, []);
 
@@ -131,6 +158,8 @@ export function ExtensionProvider({ children }: { children: ReactNode }) {
       manifests,
       getDaySubLabel,
       getDayBadge,
+      getDayAtmosphere,
+      worldEvent,
       install,
       uninstall,
       error,
@@ -140,6 +169,8 @@ export function ExtensionProvider({ children }: { children: ReactNode }) {
       manifests,
       getDaySubLabel,
       getDayBadge,
+      getDayAtmosphere,
+      worldEvent,
       install,
       uninstall,
       error,

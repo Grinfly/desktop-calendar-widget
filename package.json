@@ -1,7 +1,7 @@
 {
   "name": "desktop-calendar-widget",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:windows": "scripts\\build-windows.bat",
-    "build:ext:lunar": "vite build --config extensions/lunar/vite.config.ts && node scripts/pack-lunar-ext.mjs"
+    "build:ext:lunar": "vite build --config extensions/lunar/vite.config.ts && node scripts/pack-lunar-ext.mjs",
+    "build:ext:festive": "vite build --config extensions/festive/vite.config.ts && node scripts/pack-festive-ext.mjs",
+    "build:ext:world-invasion": "vite build --config extensions/world-invasion/vite.config.ts && node scripts/pack-world-invasion-ext.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

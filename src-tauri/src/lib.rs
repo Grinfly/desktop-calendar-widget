@@ -2,6 +2,7 @@ mod desktop;
 mod extensions;
 mod holidays;
 mod storage;
+mod wallpaper;
 
 use std::sync::Mutex;
 
@@ -451,7 +452,9 @@ pub fn run() {
             extensions::install_extension,
             extensions::uninstall_extension,
             extensions::read_extension_entry,
-            holidays::load_work_rest_days
+            holidays::load_work_rest_days,
+            wallpaper::sample_wallpaper_theme,
+            wallpaper::wallpaper_source_revision
         ])
         .setup(|app| {
             let initial_pin_mode = read_pin_mode();

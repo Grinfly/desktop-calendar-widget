@@ -16,6 +16,8 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { TaskList } from "./components/TaskList";
 import { ResizeHandles } from "./components/ResizeHandles";
 import { TitleBar } from "./components/TitleBar";
+import { HolidayFx } from "./components/HolidayFx";
+import { WorldFx } from "./components/WorldFx";
 import { ExtensionProvider, useExtensions } from "./extensions/ExtensionContext";
 import "./styles/global.css";
 
@@ -35,6 +37,8 @@ function AppShell() {
     togglePinMode,
     setBackgroundOpacity,
     setShowWorkRestBadges,
+    setFollowWallpaper,
+    setFollowWallpaperText,
     addTask,
     toggleTask,
     deleteTask,
@@ -45,8 +49,14 @@ function AppShell() {
     getTaskProgressOnDate,
     updateMonthSummary,
   } = useTasks();
-  const { loaded: extensionsLoaded, manifests, getDaySubLabel, getDayBadge } =
-    useExtensions();
+  const {
+    loaded: extensionsLoaded,
+    manifests,
+    getDaySubLabel,
+    getDayBadge,
+    getDayAtmosphere,
+    worldEvent,
+  } = useExtensions();
   const dayBadge =
     (data.settings.showWorkRestBadges ?? true) &&
     manifests.some((manifest) => manifest.id === "lunar")
@@ -180,6 +190,10 @@ function AppShell() {
       onBackgroundOpacityChange={setBackgroundOpacity}
       showWorkRestBadges={data.settings.showWorkRestBadges ?? true}
       onShowWorkRestBadgesChange={setShowWorkRestBadges}
+      followWallpaper={data.settings.followWallpaper ?? true}
+      onFollowWallpaperChange={setFollowWallpaper}
+      followWallpaperText={data.settings.followWallpaperText ?? false}
+      onFollowWallpaperTextChange={setFollowWallpaperText}
       onClose={closeSettings}
     />
   ) : showTaskView ? (
@@ -261,6 +275,9 @@ function AppShell() {
     <div className="widget-shell">
       <ResizeHandles />
       <div className="widget-card">
+        <HolidayFx kind={getDayAtmosphere(new Date())} />
+        <WorldFx event={worldEvent} active={!showSettings} />
+        <div className="widget-body">
         {showTaskView ? (
           <>
             <TitleBar
@@ -323,6 +340,7 @@ function AppShell() {
             {mainContent}
           </>
         )}
+        </div>
       </div>
     </div>
   );

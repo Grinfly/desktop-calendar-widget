@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { parseDateKey, toDateKey } from "../lib/dates";
 import { loadAppData, saveAppData } from "../lib/storage";
-import { applyBackgroundOpacity, setPinMode } from "../lib/windowTheme";
+import { applyBackgroundOpacity, applyWallpaperTheme, clearWallpaperTheme, setPinMode, wallpaperSourceRevision } from "../lib/windowTheme";
 import {
   DEFAULT_APP_DATA,
   type AppData,
@@ -61,6 +61,9 @@ export function useTasks() {
         setCurrentMonth(parseDateKey(saved.settings.selectedDate));
       }
       void applyBackgroundOpacity(saved.settings.backgroundOpacity ?? 100);
+      if (saved.settings.followWallpaper ?? true) {
+        void applyWallpaperTheme(saved.settings.followWallpaperText ?? false);
+      }
       setLoaded(true);
     })();
 
@@ -95,6 +98,39 @@ export function useTasks() {
       unlisten?.();
     };
   }, [updateData]);
+
+  useEffect(() => {
+    if (!loaded || !(data.settings.followWallpaper ?? true)) return;
+
+    let cancelled = false;
+    let lastRevision = -1;
+
+    const syncIfChanged = async () => {
+      const revision = await wallpaperSourceRevision();
+      if (cancelled) return;
+      if (revision === lastRevision) return;
+      lastRevision = revision;
+      await applyWallpaperTheme(data.settings.followWallpaperText ?? false);
+    };
+
+    void syncIfChanged();
+    const intervalId = window.setInterval(() => {
+      void syncIfChanged();
+    }, 1500);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void syncIfChanged();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [loaded, data.settings.followWallpaper, data.settings.followWallpaperText]);
 
   const updateSettings = useCallback(
     (patch: Partial<AppSettings>) => {
@@ -146,6 +182,28 @@ export function useTasks() {
       updateSettings({ showWorkRestBadges: show });
     },
     [updateSettings],
+  );
+
+  const setFollowWallpaper = useCallback(
+    (follow: boolean) => {
+      updateSettings({ followWallpaper: follow });
+      if (follow) {
+        void applyWallpaperTheme(data.settings.followWallpaperText ?? false);
+      } else {
+        clearWallpaperTheme();
+      }
+    },
+    [data.settings.followWallpaperText, updateSettings],
+  );
+
+  const setFollowWallpaperText = useCallback(
+    (follow: boolean) => {
+      updateSettings({ followWallpaperText: follow });
+      if (data.settings.followWallpaper ?? true) {
+        void applyWallpaperTheme(follow);
+      }
+    },
+    [data.settings.followWallpaper, updateSettings],
   );
 
   const addTask = useCallback(
@@ -309,6 +367,8 @@ export function useTasks() {
     togglePinMode,
     setBackgroundOpacity,
     setShowWorkRestBadges,
+    setFollowWallpaper,
+    setFollowWallpaperText,
     addTask,
     toggleTask,
     deleteTask,

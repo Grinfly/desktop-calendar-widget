@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice">
+  <title>端午 · 绿叶横飘</title>
+  <defs>
+    <g id="leaf">
+      <path d="M-17 0C-6-9 9-10 17-3 10 5-5 8-17 0z" fill="#5c8a46"/>
+      <path d="M-16 0C-6-2 8-3 16-2" fill="none" stroke="#3f6a32" stroke-width="1"/>
+      <path d="M-9-2c4 1 8 1 12 0" fill="none" stroke="#7eaa62" stroke-width="0.7"/>
+    </g>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a7c9c4" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#8fb8b2" stop-opacity="0.48"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="286" width="300" height="74" fill="url(#water)"/>
+  <g stroke="#7faeaa" stroke-width="1" opacity="0.42" fill="none">
+    <path d="M8 306q12-5 24 0t24 0"/>
+    <path d="M120 324q12-5 24 0t24 0"/>
+    <path d="M212 308q12-5 24 0t24 0"/>
+    <path d="M56 340q12-5 24 0t24 0"/>
+    <path d="M180 348q12-5 24 0t24 0"/>
+  </g>
+  <g>
+    <g opacity="0.8"><animateTransform attributeName="transform" type="translate" values="-40,70;60,62;170,76;290,64;420,72" dur="12s" begin="-3s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-24;14;-20;0" dur="12s" begin="-3s" repeatCount="indefinite"/><use href="#leaf"/></g></g>
+    <g opacity="0.66"><animateTransform attributeName="transform" type="translate" values="-40,132;70,124;190,140;310,126;420,134" dur="15s" begin="-9s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;18;-14;22;0" dur="15s" begin="-9s" repeatCount="indefinite"/><use href="#leaf" transform="scale(1.25)"/></g></g>
+    <g opacity="0.74"><animateTransform attributeName="transform" type="translate" values="-40,196;80,188;200,204;320,190;430,198" dur="10.5s" begin="-1s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-16;22;-12;0" dur="10.5s" begin="-1s" repeatCount="indefinite"/><use href="#leaf" transform="scale(0.9)"/></g></g>
+    <g opacity="0.6"><animateTransform attributeName="transform" type="translate" values="-40,258;60,250;180,266;300,252;400,260" dur="17s" begin="-12s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;26;-18;20;0" dur="17s" begin="-12s" repeatCount="indefinite"/><use href="#leaf" transform="scale(1.4)"/></g></g>
+    <g opacity="0.68"><animateTransform attributeName="transform" type="translate" values="-40,38;80,30;200,46;320,32;420,40" dur="14s" begin="-6s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-20;16;-24;0" dur="14s" begin="-6s" repeatCount="indefinite"/><use href="#leaf" transform="scale(1.1)"/></g></g>
+    <g opacity="0.54"><animateTransform attributeName="transform" type="translate" values="-40,166;70,158;190,174;310,160;410,168" dur="18s" begin="-15s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;14;-22;16;0" dur="18s" begin="-15s" repeatCount="indefinite"/><use href="#leaf" transform="scale(0.8)"/></g></g>
+    <g opacity="0.7"><animateTransform attributeName="transform" type="translate" values="-40,104;90,96;210,112;330,98;430,106" dur="13s" begin="-4.5s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-28;18;-26;0" dur="13s" begin="-4.5s" repeatCount="indefinite"/><use href="#leaf" transform="scale(1.15)"/></g></g>
+    <g opacity="0.58"><animateTransform attributeName="transform" type="translate" values="-40,228;70,220;190,236;310,222;410,230" dur="16s" begin="-10s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;22;-16;18;0" dur="16s" begin="-10s" repeatCount="indefinite"/><use href="#leaf" transform="scale(1.05)"/></g></g>
+  </g>
+</svg>

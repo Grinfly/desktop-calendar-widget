@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice">
+  <title>除夕 · 大片慢雪</title>
+  <defs>
+    <g id="sf" fill="none" stroke="#a9c8de" stroke-linecap="round">
+      <path d="M0-9V9M-7.8-4.5L7.8 4.5M-7.8 4.5L7.8-4.5" stroke-width="1.7"/>
+      <path d="M0-9l-2.4-2.4M0-9l2.4-2.4M0 9l-2.4 2.4M0 9l2.4 2.4" stroke-width="1.3"/>
+      <path d="M-7.8-4.5l-2.8.7M-7.8-4.5l-.7-2.8M7.8 4.5l2.8-.7M7.8 4.5l.7 2.8" stroke-width="1.1"/>
+      <path d="M-7.8 4.5l-2.8-.7M-7.8 4.5l-.7 2.8M7.8-4.5l2.8.7M7.8-4.5l.7-2.8" stroke-width="1.1"/>
+      <circle cx="0" cy="0" r="1.4" fill="#e8f2f9" stroke="none"/>
+    </g>
+    <radialGradient id="moonG" cx="42%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fffdf4"/>
+      <stop offset="100%" stop-color="#e6ddbf"/>
+    </radialGradient>
+  </defs>
+  <circle cx="240" cy="60" r="40" fill="#f4efdc" opacity="0.3"/>
+  <circle cx="240" cy="60" r="26" fill="url(#moonG)" opacity="0.72"/>
+  <path d="M0 322Q72 300 150 318T300 312V360H0Z" fill="#e4eef6" opacity="0.85"/>
+  <path d="M0 342Q90 326 170 340T300 336V360H0Z" fill="#d3e3ef" opacity="0.9"/>
+  <g>
+    <g opacity="0.72"><animateTransform attributeName="transform" type="translate" values="34,-40;52,80;30,190;54,290;36,400" dur="15s" begin="-2s" repeatCount="indefinite"/><use href="#sf" transform="scale(2)"/></g>
+    <g opacity="0.5"><animateTransform attributeName="transform" type="translate" values="118,-50;96,80;124,190;98,290;116,400" dur="12s" begin="-7s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.3)"/></g>
+    <g opacity="0.62"><animateTransform attributeName="transform" type="translate" values="206,-60;230,70;204,190;232,290;208,400" dur="18s" begin="-11s" repeatCount="indefinite"/><use href="#sf" transform="scale(2.2)"/></g>
+    <g opacity="0.55"><animateTransform attributeName="transform" type="translate" values="262,-40;242,90;268,190;244,290;260,400" dur="14s" begin="-4s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.5)"/></g>
+    <g opacity="0.48"><animateTransform attributeName="transform" type="translate" values="72,-45;94,80;68,190;96,290;74,400" dur="16s" begin="-9s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.6)"/></g>
+    <g opacity="0.44"><animateTransform attributeName="transform" type="translate" values="162,-35;144,90;168,190;146,290;160,400" dur="11s" begin="-1s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.2)"/></g>
+    <g opacity="0.52"><animateTransform attributeName="transform" type="translate" values="44,20;64,140;42,250;66,340;48,420" dur="17s" begin="-6s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.4)"/></g>
+    <g opacity="0.5"><animateTransform attributeName="transform" type="translate" values="248,10;226,140;252,250;228,340;246,420" dur="19s" begin="-13s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.8)"/></g>
+    <g opacity="0.46"><animateTransform attributeName="transform" type="translate" values="150,50;128,160;154,260;130,350;148,430" dur="13s" begin="-3s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.35)"/></g>
+    <g opacity="0.42"><animateTransform attributeName="transform" type="translate" values="20,80;40,190;18,290;42,370;24,440" dur="15s" begin="-8s" repeatCount="indefinite"/><use href="#sf" transform="scale(1.1)"/></g>
+  </g>
+</svg>

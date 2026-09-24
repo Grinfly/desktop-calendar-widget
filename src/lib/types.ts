@@ -32,6 +32,8 @@ export interface AppSettings {
   selectedDate: string;
   backgroundOpacity: number;
   showWorkRestBadges: boolean;
+  followWallpaper: boolean;
+  followWallpaperText: boolean;
 }
 
 export interface AppData {
@@ -48,6 +50,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   selectedDate: "",
   backgroundOpacity: 100,
   showWorkRestBadges: true,
+  followWallpaper: true,
+  followWallpaperText: false,
 };
 
 export const DEFAULT_APP_DATA: AppData = {
