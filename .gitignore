@@ -25,3 +25,4 @@ dist-extensions
 *.sw?
 preview-effects.html
 preview/
+release-artifacts/
