@@ -1,6 +1,6 @@
 [package]
 name = "desktop-calendar-widget"
-version = "0.1.3"
+version = "0.1.4"
 description = "Desktop calendar todo widget"
 authors = ["Grinf"]
 edition = "2021"

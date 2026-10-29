@@ -8,6 +8,7 @@ export async function loadAppData(): Promise<AppData> {
     const parsed = JSON.parse(raw) as AppData;
     return {
       tasks: parsed.tasks ?? {},
+      longTermTasks: Array.isArray(parsed.longTermTasks) ? parsed.longTermTasks : [],
       monthSummaries: parsed.monthSummaries ?? {},
       settings: {
         ...DEFAULT_APP_DATA.settings,

@@ -38,6 +38,7 @@ export interface AppSettings {
 
 export interface AppData {
   tasks: Record<string, Task[]>;
+  longTermTasks?: Task[];
   monthSummaries: Record<string, string>;
   settings: AppSettings;
 }
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export const DEFAULT_APP_DATA: AppData = {
   tasks: {},
+  longTermTasks: [],
   monthSummaries: {},
   settings: DEFAULT_SETTINGS,
 };

@@ -355,6 +355,122 @@ export function useTasks() {
     [data.tasks],
   );
 
+  const addLongTermTask = useCallback(
+    (title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+
+      const task: Task = {
+        id: uuidv4(),
+        title: trimmed,
+        done: false,
+        note: "",
+      };
+
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: [...(prev.longTermTasks ?? []), task],
+      }));
+    },
+    [updateData],
+  );
+
+  const toggleLongTermTask = useCallback(
+    (taskId: string) => {
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).map((task) =>
+          task.id === taskId ? { ...task, done: !task.done } : task,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
+  const deleteLongTermTask = useCallback(
+    (taskId: string) => {
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).filter(
+          (task) => task.id !== taskId,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
+  const updateLongTermTaskTitle = useCallback(
+    (taskId: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).map((task) =>
+          task.id === taskId ? { ...task, title: trimmed } : task,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
+  const updateLongTermTaskColor = useCallback(
+    (taskId: string, colorId: string) => {
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).map((task) =>
+          task.id === taskId ? { ...task, color: colorId || undefined } : task,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
+  const updateLongTermTaskNote = useCallback(
+    (taskId: string, note: string) => {
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).map((task) =>
+          task.id === taskId ? { ...task, note } : task,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
+  const scheduleLongTermTaskToDate = useCallback(
+    (taskId: string, dateKey: string, removeFromLongTerm = false) => {
+      updateData((prev) => {
+        const sourceTask = (prev.longTermTasks ?? []).find(
+          (task) => task.id === taskId,
+        );
+        if (!sourceTask) return prev;
+
+        const scheduledTask: Task = {
+          ...sourceTask,
+          id: uuidv4(),
+          done: false, // 安排到具体日期时作为待做任务
+        };
+
+        const nextTasks = {
+          ...prev.tasks,
+          [dateKey]: [...(prev.tasks[dateKey] ?? []), scheduledTask],
+        };
+
+        const nextLongTerm = removeFromLongTerm
+          ? (prev.longTermTasks ?? []).filter((task) => task.id !== taskId)
+          : prev.longTermTasks ?? [];
+
+        return {
+          ...prev,
+          tasks: nextTasks,
+          longTermTasks: nextLongTerm,
+        };
+      });
+    },
+    [updateData],
+  );
+
   return {
     data,
     loaded,
@@ -378,5 +494,12 @@ export function useTasks() {
     copyTasksFromDate,
     getTaskProgressOnDate,
     updateMonthSummary,
+    addLongTermTask,
+    toggleLongTermTask,
+    deleteLongTermTask,
+    updateLongTermTaskTitle,
+    updateLongTermTaskColor,
+    updateLongTermTaskNote,
+    scheduleLongTermTaskToDate,
   };
 }

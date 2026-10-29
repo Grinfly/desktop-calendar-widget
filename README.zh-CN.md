@@ -6,7 +6,7 @@
 
 <br />
 
-[![Version](https://img.shields.io/badge/version-0.1.3-blue?style=flat-square)](./src/lib/version.ts)
+[![Version](https://img.shields.io/badge/version-0.1.4-blue?style=flat-square)](./src/lib/version.ts)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square)](#)
 [![GitHub](https://img.shields.io/badge/GitHub-Grinfly%2Fdesktop--calendar--widget-181717?style=flat-square&logo=github)](https://github.com/Grinfly/desktop-calendar-widget)
 [![Tauri](https://img.shields.io/badge/Tauri-2-FFC131?style=flat-square&logo=tauri&logoColor=black)](https://tauri.app)
@@ -29,6 +29,7 @@
 | 月历视图 | 公历月历；安装农历扩展后显示农历 / 节气 / 节日 |
 | 待办进度 | 日期下方彩色横线：黄色=未完成，绿色=已完成，按比例分段 |
 | 当日待办 | 添加、勾选、编辑、删除；支持行颜色与长文本展开 |
+| 长期待办 | 不绑定日期的任务；支持备注、颜色、进行中筛选及安排到今天 |
 | 钉住模式 | 悬浮置顶 / 贴到桌面（关闭置顶，融入壁纸层） |
 | 透明背景 | 设置中调节不透明度 20%–100% |
 | 系统托盘 | 显示 / 隐藏、切换钉住、退出 |

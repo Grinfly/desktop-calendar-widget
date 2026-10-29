@@ -5,7 +5,8 @@ import type { Task } from "../lib/types";
 
 interface TaskDetailPanelProps {
   task: Task;
-  dateKey: string;
+  dateKey?: string;
+  subTitle?: string;
   onRename: (title: string) => void;
   onNoteChange: (note: string) => void;
 }
@@ -13,6 +14,7 @@ interface TaskDetailPanelProps {
 export function TaskDetailPanel({
   task,
   dateKey,
+  subTitle,
   onRename,
   onNoteChange,
 }: TaskDetailPanelProps) {
@@ -39,13 +41,16 @@ export function TaskDetailPanel({
     }
   };
 
+  const displayLabel =
+    subTitle ?? (dateKey ? formatDayTitle(dateKey) : "长期待办");
+
   return (
     <section className="task-detail-panel" aria-label="待办详情">
       <div className="task-detail-label-row">
         <label className="task-detail-label" htmlFor="task-detail-title-input">
           标题
         </label>
-        <span className="task-detail-date">{formatDayTitle(dateKey)}</span>
+        <span className="task-detail-date">{displayLabel}</span>
       </div>
       <input
         id="task-detail-title-input"

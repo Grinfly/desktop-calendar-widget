@@ -6,7 +6,7 @@
 
 <br />
 
-[![Version](https://img.shields.io/badge/version-0.1.3-blue?style=flat-square)](./src/lib/version.ts)
+[![Version](https://img.shields.io/badge/version-0.1.4-blue?style=flat-square)](./src/lib/version.ts)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square)](#)
 [![GitHub](https://img.shields.io/badge/GitHub-Grinfly%2Fdesktop--calendar--widget-181717?style=flat-square&logo=github)](https://github.com/Grinfly/desktop-calendar-widget)
 [![Tauri](https://img.shields.io/badge/Tauri-2-FFC131?style=flat-square&logo=tauri&logoColor=black)](https://tauri.app)
@@ -29,6 +29,7 @@ Small, translucent, and pin-able — see the date and what you need to do today 
 | Month view | Gregorian calendar; install the lunar extension for lunar dates, solar terms, and festivals |
 | Task progress | Colored bar under the date: yellow = pending, green = done, split by ratio |
 | Daily todos | Add, check off, edit, delete; row colors and expandable long text |
+| Long-term todos | Keep tasks without a date; edit notes and colors, filter active tasks, and copy tasks to today |
 | Pin modes | Floating (always on top) / Desktop (release always-on-top) |
 | Transparency | Adjustable background opacity 20%–100% in Settings |
 | System tray | Show / hide, switch pin mode, quit |

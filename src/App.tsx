@@ -11,6 +11,7 @@ import { useDateTick } from "./hooks/useDateTick";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
 import { DatePickerPanel } from "./components/DatePickerPanel";
+import { LongTermTaskPanel } from "./components/LongTermTaskPanel";
 import { MonthSummaryPanel } from "./components/MonthSummaryPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { TaskList } from "./components/TaskList";
@@ -25,7 +26,8 @@ type PickerMode = "month" | "date" | "copy" | null;
 
 function AppShell() {
   useDateTick();
-
+  const tasks = useTasks();
+  const extensions = useExtensions();
   const {
     data,
     loaded,
@@ -48,7 +50,14 @@ function AppShell() {
     copyTasksFromDate,
     getTaskProgressOnDate,
     updateMonthSummary,
-  } = useTasks();
+    addLongTermTask,
+    toggleLongTermTask,
+    deleteLongTermTask,
+    updateLongTermTaskTitle,
+    updateLongTermTaskColor,
+    updateLongTermTaskNote,
+    scheduleLongTermTaskToDate,
+  } = tasks;
   const {
     loaded: extensionsLoaded,
     manifests,
@@ -56,7 +65,8 @@ function AppShell() {
     getDayBadge,
     getDayAtmosphere,
     worldEvent,
-  } = useExtensions();
+  } = extensions;
+
   const dayBadge =
     (data.settings.showWorkRestBadges ?? true) &&
     manifests.some((manifest) => manifest.id === "lunar")
@@ -66,14 +76,39 @@ function AppShell() {
   const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showMonthSummary, setShowMonthSummary] = useState(false);
+  const [showLongTermTasks, setShowLongTermTasks] = useState(false);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [longTermDetailTaskId, setLongTermDetailTaskId] = useState<string | null>(null);
+
   const closeDetail = useCallback(() => setDetailTaskId(null), []);
   const closeMonthSummary = useCallback(() => setShowMonthSummary(false), []);
   const openMonthSummary = useCallback(() => {
     setPickerMode(null);
     setShowSettings(false);
+    setShowLongTermTasks(false);
     setShowMonthSummary(true);
   }, []);
+
+  const openLongTermTasks = useCallback(() => {
+    setShowLongTermTasks((prev) => {
+      if (prev) {
+        setLongTermDetailTaskId(null);
+        return false;
+      }
+      setPickerMode(null);
+      setShowSettings(false);
+      setShowMonthSummary(false);
+      return true;
+    });
+  }, []);
+
+  const closeLongTermTasks = useCallback(() => {
+    if (longTermDetailTaskId) {
+      setLongTermDetailTaskId(null);
+      return;
+    }
+    setShowLongTermTasks(false);
+  }, [longTermDetailTaskId]);
 
   useEffect(() => {
     if (!showSettings) return;
@@ -88,7 +123,7 @@ function AppShell() {
   }, [showSettings]);
 
   useEffect(() => {
-    if (!showMonthSummary || showSettings || pickerMode !== null) return;
+    if (!showMonthSummary || showSettings || showLongTermTasks || pickerMode !== null) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -97,10 +132,22 @@ function AppShell() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showMonthSummary, showSettings, pickerMode]);
+  }, [showMonthSummary, showSettings, showLongTermTasks, pickerMode]);
 
   useEffect(() => {
-    if (view !== "tasks" || pickerMode !== null || showSettings) return;
+    if (!showLongTermTasks || showSettings || pickerMode !== null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeLongTermTasks();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showLongTermTasks, showSettings, pickerMode, closeLongTermTasks]);
+
+  useEffect(() => {
+    if (view !== "tasks" || pickerMode !== null || showSettings || showLongTermTasks) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -113,13 +160,14 @@ function AppShell() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [view, pickerMode, showSettings, detailTaskId, goToCalendar]);
+  }, [view, pickerMode, showSettings, showLongTermTasks, detailTaskId, goToCalendar]);
 
   useEffect(() => {
     if (
       view !== "calendar" ||
       showSettings ||
       showMonthSummary ||
+      showLongTermTasks ||
       pickerMode !== null
     ) {
       return;
@@ -143,7 +191,7 @@ function AppShell() {
       window.removeEventListener("wheel", onWheel);
       window.clearTimeout(unlockTimer);
     };
-  }, [view, showSettings, showMonthSummary, pickerMode, setCurrentMonth]);
+  }, [view, showSettings, showMonthSummary, showLongTermTasks, pickerMode, setCurrentMonth]);
 
   if (!loaded || !extensionsLoaded) {
     return (
@@ -173,15 +221,19 @@ function AppShell() {
   const closePicker = () => setPickerMode(null);
   const openSettings = () => {
     setPickerMode(null);
+    setShowLongTermTasks(false);
     setShowSettings(true);
   };
   const openMonthSummaryFromBar =
-    !showSettings && pickerMode !== "month" ? openMonthSummary : undefined;
+    !showSettings && !showLongTermTasks && pickerMode !== "month"
+      ? openMonthSummary
+      : undefined;
   const closeSettings = () => setShowSettings(false);
   const goToTodayMonth = () => {
     setCurrentMonth(getTodayMonth());
     setPickerMode(null);
     setShowSettings(false);
+    setShowLongTermTasks(false);
   };
 
   const mainContent = showSettings ? (
@@ -195,6 +247,23 @@ function AppShell() {
       followWallpaperText={data.settings.followWallpaperText ?? false}
       onFollowWallpaperTextChange={setFollowWallpaperText}
       onClose={closeSettings}
+    />
+  ) : showLongTermTasks ? (
+    <LongTermTaskPanel
+      tasks={data.longTermTasks ?? []}
+      detailTaskId={longTermDetailTaskId}
+      onOpenDetail={setLongTermDetailTaskId}
+      onCloseDetail={() => setLongTermDetailTaskId(null)}
+      onAdd={addLongTermTask}
+      onToggle={toggleLongTermTask}
+      onDelete={deleteLongTermTask}
+      onRename={updateLongTermTaskTitle}
+      onColorChange={updateLongTermTaskColor}
+      onNoteChange={updateLongTermTaskNote}
+      onScheduleToday={(taskId) => {
+        const todayKey = toDateKey(new Date());
+        scheduleLongTermTaskToDate(taskId, todayKey, false);
+      }}
     />
   ) : showTaskView ? (
     pickerMode === "date" || pickerMode === "copy" ? (
@@ -278,7 +347,23 @@ function AppShell() {
         <HolidayFx kind={getDayAtmosphere(new Date())} />
         <WorldFx event={worldEvent} active={!showSettings} />
         <div className="widget-body">
-        {showTaskView ? (
+        {showLongTermTasks ? (
+          <>
+            <TitleBar
+              month={currentMonth}
+              pinMode={data.settings.pinMode}
+              onPinToggle={() => void togglePinMode()}
+              onOpenSettings={openSettings}
+              settingsOpen={showSettings}
+              showMonthNav={false}
+              detailOpen={Boolean(longTermDetailTaskId)}
+              longTermTasksOpen={true}
+              onOpenLongTermTasks={openLongTermTasks}
+              onBack={closeLongTermTasks}
+            />
+            {mainContent}
+          </>
+        ) : showTaskView ? (
           <>
             <TitleBar
               month={currentMonth}
@@ -289,6 +374,8 @@ function AppShell() {
               showMonthNav={false}
               dateKey={selectedDate}
               detailOpen={Boolean(detailTaskId)}
+              longTermTasksOpen={false}
+              onOpenLongTermTasks={openLongTermTasks}
               onBack={
                 showSettings
                   ? closeSettings
@@ -314,6 +401,8 @@ function AppShell() {
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
               settingsOpen={showSettings}
+              longTermTasksOpen={false}
+              onOpenLongTermTasks={openLongTermTasks}
               onBack={
                 showSettings
                   ? closeSettings

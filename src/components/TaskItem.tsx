@@ -12,6 +12,7 @@ interface TaskItemProps {
   onRequestDetail: () => void;
   onRename: (title: string) => void;
   onColorChange: (colorId: string) => void;
+  onScheduleToday?: () => void;
 }
 
 export function TaskItem({
@@ -21,6 +22,7 @@ export function TaskItem({
   onRequestDetail,
   onRename,
   onColorChange,
+  onScheduleToday,
 }: TaskItemProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.title);
@@ -179,6 +181,16 @@ export function TaskItem({
           >
             详情
           </button>
+          {onScheduleToday ? (
+            <button
+              type="button"
+              className="task-menu-item"
+              role="menuitem"
+              onClick={onScheduleToday}
+            >
+              安排到今天
+            </button>
+          ) : null}
           <button
             type="button"
             className="task-menu-item danger"

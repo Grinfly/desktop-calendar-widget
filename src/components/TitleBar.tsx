@@ -1,12 +1,8 @@
 import { useLayoutEffect, useRef } from "react";
 
-import {
-  formatDayTitle,
-  formatMonthTitle,
-  isSameMonth,
-  toMonthKey,
-} from "../lib/dates";
+import { formatDayTitle, formatMonthTitle, isSameMonth, toMonthKey } from "../lib/dates";
 import type { PinMode } from "../lib/types";
+import { LongTermTasksButton } from "./LongTermTasksButton";
 import { MonthSummaryButton } from "./MonthSummaryButton";
 import { PinButton } from "./PinButton";
 import { SettingsButton } from "./SettingsButton";
@@ -29,6 +25,8 @@ interface TitleBarProps {
   onGoToTodayMonth?: () => void;
   onOpenMonthSummary?: () => void;
   monthSummaryOpen?: boolean;
+  onOpenLongTermTasks?: () => void;
+  longTermTasksOpen?: boolean;
 }
 
 export function TitleBar({
@@ -47,6 +45,8 @@ export function TitleBar({
   onGoToTodayMonth,
   onOpenMonthSummary,
   monthSummaryOpen = false,
+  onOpenLongTermTasks,
+  longTermTasksOpen = false,
 }: TitleBarProps) {
   const isTaskView = !showMonthNav && dateKey !== undefined;
   const showBack = Boolean(onBack);
@@ -78,7 +78,17 @@ export function TitleBar({
 
   return (
     <header className="title-bar">
-      {showMonthNav ? (
+      {longTermTasksOpen ? (
+        <div
+          className="title-bar-left"
+          onDoubleClick={(event) => event.stopPropagation()}
+        >
+          {backButton}
+          <span className="title-bar-label single">
+            {detailOpen ? "待办详情" : "长期待办"}
+          </span>
+        </div>
+      ) : showMonthNav ? (
         <>
           <div
             className="title-bar-left"
@@ -144,7 +154,13 @@ export function TitleBar({
         className="title-bar-actions"
         onDoubleClick={(event) => event.stopPropagation()}
       >
-        {showMonthNav && onGoToTodayMonth ? (
+        {onOpenLongTermTasks ? (
+          <LongTermTasksButton
+            active={longTermTasksOpen}
+            onOpen={onOpenLongTermTasks}
+          />
+        ) : null}
+        {showMonthNav && onGoToTodayMonth && !longTermTasksOpen ? (
           <TodayMonthButton
             active={isTodayMonth}
             onGoToTodayMonth={onGoToTodayMonth}
