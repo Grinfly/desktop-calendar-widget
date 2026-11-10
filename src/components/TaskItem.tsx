@@ -13,6 +13,7 @@ interface TaskItemProps {
   onRename: (title: string) => void;
   onColorChange: (colorId: string) => void;
   onScheduleToday?: () => void;
+  archiveAction?: { label: string; onClick: () => void };
 }
 
 export function TaskItem({
@@ -23,6 +24,7 @@ export function TaskItem({
   onRename,
   onColorChange,
   onScheduleToday,
+  archiveAction,
 }: TaskItemProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.title);
@@ -191,6 +193,16 @@ export function TaskItem({
               安排到今天
             </button>
           ) : null}
+          {archiveAction && (
+            <button
+              type="button"
+              className="task-menu-item"
+              role="menuitem"
+              onClick={archiveAction.onClick}
+            >
+              {archiveAction.label}
+            </button>
+          )}
           <button
             type="button"
             className="task-menu-item danger"

@@ -53,9 +53,12 @@ export function formatYearTitle(year: number): string {
   return `${year}年`;
 }
 
-export function formatDayTitle(dateKey: string): string {
+export function formatDayTitle(dateKey: string) {
   const date = parseDateKey(dateKey);
-  return format(date, "M月d日 EEEE", { locale: zhCN });
+  return {
+    day: format(date, "M月d日"),
+    weekday: format(date, "EEEE", { locale: zhCN }),
+  };
 }
 
 export function getCalendarDays(month: Date): Date[] {

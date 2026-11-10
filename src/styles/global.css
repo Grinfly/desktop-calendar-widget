@@ -301,6 +301,12 @@ button {
   color: var(--accent);
 }
 
+@container widget (width < 360px) {
+  .task-date-weekday {
+    display: none;
+  }
+}
+
 .title-month-text {
   display: inline-block;
 }

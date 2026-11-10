@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { parseDateKey, toDateKey } from "../lib/dates";
 import { loadAppData, saveAppData } from "../lib/storage";
+import { mergeTaskBackup, type TaskBackup } from "../lib/taskBackup";
 import { applyBackgroundOpacity, applyWallpaperTheme, clearWallpaperTheme, setPinMode, wallpaperSourceRevision } from "../lib/windowTheme";
 import {
   DEFAULT_APP_DATA,
@@ -399,6 +400,18 @@ export function useTasks() {
     [updateData],
   );
 
+  const toggleLongTermTaskArchive = useCallback(
+    (taskId: string) => {
+      updateData((prev) => ({
+        ...prev,
+        longTermTasks: (prev.longTermTasks ?? []).map((task) =>
+          task.id === taskId ? { ...task, archived: !task.archived } : task,
+        ),
+      }));
+    },
+    [updateData],
+  );
+
   const updateLongTermTaskTitle = useCallback(
     (taskId: string, title: string) => {
       const trimmed = title.trim();
@@ -444,11 +457,13 @@ export function useTasks() {
         const sourceTask = (prev.longTermTasks ?? []).find(
           (task) => task.id === taskId,
         );
-        if (!sourceTask) return prev;
+        if (!sourceTask || sourceTask.archived) return prev;
 
         const scheduledTask: Task = {
-          ...sourceTask,
           id: uuidv4(),
+          title: sourceTask.title,
+          note: sourceTask.note,
+          color: sourceTask.color,
           done: false, // 安排到具体日期时作为待做任务
         };
 
@@ -471,8 +486,14 @@ export function useTasks() {
     [updateData],
   );
 
+  const importTaskBackup = useCallback(
+    (backup: TaskBackup) => updateData((prev) => mergeTaskBackup(prev, backup)),
+    [updateData],
+  );
+
   return {
     data,
+    importTaskBackup,
     loaded,
     currentMonth,
     setCurrentMonth,
@@ -496,6 +517,7 @@ export function useTasks() {
     updateMonthSummary,
     addLongTermTask,
     toggleLongTermTask,
+    toggleLongTermTaskArchive,
     deleteLongTermTask,
     updateLongTermTaskTitle,
     updateLongTermTaskColor,

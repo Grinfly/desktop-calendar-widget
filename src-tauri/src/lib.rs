@@ -446,6 +446,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             load_data,
             save_data,
+            storage::export_task_backup,
+            storage::read_task_backup,
             set_pin_mode,
             save_window_bounds,
             extensions::list_extensions,

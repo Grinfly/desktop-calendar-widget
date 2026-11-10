@@ -41,8 +41,7 @@ export function TaskDetailPanel({
     }
   };
 
-  const displayLabel =
-    subTitle ?? (dateKey ? formatDayTitle(dateKey) : "长期待办");
+  const dayTitle = subTitle === undefined && dateKey ? formatDayTitle(dateKey) : null;
 
   return (
     <section className="task-detail-panel" aria-label="待办详情">
@@ -50,7 +49,14 @@ export function TaskDetailPanel({
         <label className="task-detail-label" htmlFor="task-detail-title-input">
           标题
         </label>
-        <span className="task-detail-date">{displayLabel}</span>
+        <span className="task-detail-date">
+          {dayTitle ? (
+            <>
+              {dayTitle.day}
+              <span className="task-date-weekday"> {dayTitle.weekday}</span>
+            </>
+          ) : subTitle ?? "长期待办"}
+        </span>
       </div>
       <input
         id="task-detail-title-input"

@@ -11,6 +11,10 @@ export interface TaskProgress {
   done: number;
 }
 
+export interface LongTermTask extends Task {
+  archived?: boolean;
+}
+
 export interface Position {
   x: number;
   y: number;
@@ -38,7 +42,7 @@ export interface AppSettings {
 
 export interface AppData {
   tasks: Record<string, Task[]>;
-  longTermTasks?: Task[];
+  longTermTasks?: LongTermTask[];
   monthSummaries: Record<string, string>;
   settings: AppSettings;
 }

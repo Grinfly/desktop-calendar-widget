@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useExtensions } from "../extensions/ExtensionContext";
+import { exportTaskBackup, importTaskBackup, type TaskBackup } from "../lib/taskBackup";
+import type { AppData } from "../lib/types";
 import { APP_VERSION } from "../lib/version";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -505,6 +507,8 @@ function CityPicker() {
 }
 
 interface SettingsPanelProps {
+  taskData: Pick<AppData, "tasks" | "longTermTasks">;
+  onImportTaskBackup: (backup: TaskBackup) => void;
   backgroundOpacity: number;
   onBackgroundOpacityChange: (value: number) => void;
   showWorkRestBadges: boolean;
@@ -517,6 +521,8 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({
+  taskData,
+  onImportTaskBackup,
   backgroundOpacity,
   onBackgroundOpacityChange,
   showWorkRestBadges,
@@ -528,6 +534,8 @@ export function SettingsPanel({
   onClose,
 }: SettingsPanelProps) {
   const { manifests, install, uninstall, worldEvent, error } = useExtensions();
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupStatus, setBackupStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [pendingUninstall, setPendingUninstall] = useState<{
     id: string;
     name: string;
@@ -546,6 +554,27 @@ export function SettingsPanel({
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onClose, pendingUninstall]);
+
+  const handleBackup = async (action: "export" | "import") => {
+    setBackupBusy(true);
+    setBackupStatus(null);
+    try {
+      if (action === "export") {
+        if (await exportTaskBackup(taskData)) setBackupStatus({ text: "待办备份已导出" });
+      } else {
+        const backup = await importTaskBackup();
+        if (backup) {
+          onImportTaskBackup(backup);
+          setBackupStatus({ text: "导入完成，已跳过重复记录" });
+        }
+      }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      setBackupStatus({ text: `${action === "export" ? "导出" : "导入"}失败：${detail}`, error: true });
+    } finally {
+      setBackupBusy(false);
+    }
+  };
 
   return (
     <section className="settings-panel" aria-label="设置">
@@ -594,6 +623,28 @@ export function SettingsPanel({
             文字颜色也跟随
           </label>
         </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-header">
+          <h3 className="settings-label">待办备份</h3>
+          <div className="settings-toggle-row">
+            <button type="button" className="settings-action-button" disabled={backupBusy}
+              onClick={() => void handleBackup("export")}>
+              导出…
+            </button>
+            <button type="button" className="settings-action-button" disabled={backupBusy}
+              onClick={() => void handleBackup("import")}>
+              导入…
+            </button>
+          </div>
+        </div>
+        <p className="settings-hint">备份日历待办和长期待办。导入时保留已有记录。</p>
+        {backupStatus && (
+          <p className={backupStatus.error ? "settings-error" : "settings-hint"} role="status">
+            {backupStatus.text}
+          </p>
+        )}
       </div>
 
       <div className="settings-section">

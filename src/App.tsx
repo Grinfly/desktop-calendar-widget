@@ -50,8 +50,10 @@ function AppShell() {
     copyTasksFromDate,
     getTaskProgressOnDate,
     updateMonthSummary,
+    importTaskBackup,
     addLongTermTask,
     toggleLongTermTask,
+    toggleLongTermTaskArchive,
     deleteLongTermTask,
     updateLongTermTaskTitle,
     updateLongTermTaskColor,
@@ -238,6 +240,8 @@ function AppShell() {
 
   const mainContent = showSettings ? (
     <SettingsPanel
+      taskData={data}
+      onImportTaskBackup={importTaskBackup}
       backgroundOpacity={data.settings.backgroundOpacity ?? 100}
       onBackgroundOpacityChange={setBackgroundOpacity}
       showWorkRestBadges={data.settings.showWorkRestBadges ?? true}
@@ -256,6 +260,7 @@ function AppShell() {
       onCloseDetail={() => setLongTermDetailTaskId(null)}
       onAdd={addLongTermTask}
       onToggle={toggleLongTermTask}
+      onToggleArchive={toggleLongTermTaskArchive}
       onDelete={deleteLongTermTask}
       onRename={updateLongTermTaskTitle}
       onColorChange={updateLongTermTaskColor}

@@ -49,6 +49,7 @@ export function TitleBar({
   longTermTasksOpen = false,
 }: TitleBarProps) {
   const isTaskView = !showMonthNav && dateKey !== undefined;
+  const dayTitle = isTaskView && !detailOpen ? formatDayTitle(dateKey) : null;
   const showBack = Boolean(onBack);
   const isTodayMonth = isSameMonth(month, new Date());
   const monthKey = toMonthKey(month);
@@ -134,7 +135,8 @@ export function TitleBar({
                 onClick={onOpenDatePicker}
                 onMouseDown={(event) => event.stopPropagation()}
               >
-                {formatDayTitle(dateKey)}
+                {dayTitle?.day}
+                <span className="task-date-weekday"> {dayTitle?.weekday}</span>
               </button>
             </Tooltip>
           )}
