@@ -13,6 +13,7 @@ import {
   type AppView,
   type PinMode,
   type Task,
+  type TaskDetailUpdate,
 } from "../lib/types";
 
 const SAVE_DEBOUNCE_MS = 300;
@@ -293,14 +294,14 @@ export function useTasks() {
     [updateData],
   );
 
-  const updateTaskNote = useCallback(
-    (dateKey: string, taskId: string, note: string) => {
+  const updateTaskDetails = useCallback(
+    (dateKey: string, taskId: string, update: TaskDetailUpdate) => {
       updateData((prev) => ({
         ...prev,
         tasks: {
           ...prev.tasks,
           [dateKey]: (prev.tasks[dateKey] ?? []).map((task) =>
-            task.id === taskId ? { ...task, note } : task,
+            task.id === taskId ? { ...task, ...update(task) } : task,
           ),
         },
       }));
@@ -439,12 +440,12 @@ export function useTasks() {
     [updateData],
   );
 
-  const updateLongTermTaskNote = useCallback(
-    (taskId: string, note: string) => {
+  const updateLongTermTaskDetails = useCallback(
+    (taskId: string, update: TaskDetailUpdate) => {
       updateData((prev) => ({
         ...prev,
         longTermTasks: (prev.longTermTasks ?? []).map((task) =>
-          task.id === taskId ? { ...task, note } : task,
+          task.id === taskId ? { ...task, ...update(task) } : task,
         ),
       }));
     },
@@ -463,6 +464,7 @@ export function useTasks() {
           id: uuidv4(),
           title: sourceTask.title,
           note: sourceTask.note,
+          noteImages: sourceTask.noteImages,
           color: sourceTask.color,
           done: false, // 安排到具体日期时作为待做任务
         };
@@ -511,7 +513,7 @@ export function useTasks() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
-    updateTaskNote,
+    updateTaskDetails,
     copyTasksFromDate,
     getTaskProgressOnDate,
     updateMonthSummary,
@@ -521,7 +523,7 @@ export function useTasks() {
     deleteLongTermTask,
     updateLongTermTaskTitle,
     updateLongTermTaskColor,
-    updateLongTermTaskNote,
+    updateLongTermTaskDetails,
     scheduleLongTermTaskToDate,
   };
 }

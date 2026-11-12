@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { Task } from "../lib/types";
+import type { Task, TaskDetailUpdate } from "../lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { TaskDetailPanel } from "./TaskDetailPanel";
 import { TaskItem } from "./TaskItem";
@@ -16,7 +16,7 @@ interface TaskListProps {
   onToggle: (taskId: string) => void;
   onDelete: (taskId: string) => void;
   onRename: (taskId: string, title: string) => void;
-  onNoteChange: (taskId: string, note: string) => void;
+  onDetailsChange: (taskId: string, update: TaskDetailUpdate) => void;
   onColorChange: (taskId: string, colorId: string) => void;
   onCopyYesterday: () => void;
   canCopyYesterday: boolean;
@@ -33,7 +33,7 @@ export function TaskList({
   onToggle,
   onDelete,
   onRename,
-  onNoteChange,
+  onDetailsChange,
   onColorChange,
   onCopyYesterday,
   canCopyYesterday,
@@ -75,10 +75,11 @@ export function TaskList({
     return (
       <section className="task-list-view">
         <TaskDetailPanel
+          key={detailTask.id}
           task={detailTask}
           dateKey={dateKey}
           onRename={(title) => onRename(detailTask.id, title)}
-          onNoteChange={(note) => onNoteChange(detailTask.id, note)}
+          onDetailsChange={(update) => onDetailsChange(detailTask.id, update)}
         />
       </section>
     );

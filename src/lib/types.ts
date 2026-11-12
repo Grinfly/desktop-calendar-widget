@@ -3,8 +3,11 @@ export interface Task {
   title: string;
   done: boolean;
   note: string;
+  noteImages?: string[];
   color?: string;
 }
+
+export type TaskDetailUpdate = (task: Task) => Partial<Pick<Task, "note" | "noteImages">>;
 
 export interface TaskProgress {
   total: number;

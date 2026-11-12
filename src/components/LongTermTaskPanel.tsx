@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { LongTermTask } from "../lib/types";
+import type { LongTermTask, TaskDetailUpdate } from "../lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { TaskDetailPanel } from "./TaskDetailPanel";
 import { TaskItem } from "./TaskItem";
@@ -17,7 +17,7 @@ interface LongTermTaskPanelProps {
   onDelete: (taskId: string) => void;
   onRename: (taskId: string, title: string) => void;
   onColorChange: (taskId: string, colorId: string) => void;
-  onNoteChange: (taskId: string, note: string) => void;
+  onDetailsChange: (taskId: string, update: TaskDetailUpdate) => void;
   onScheduleToday: (taskId: string) => void;
 }
 
@@ -32,7 +32,7 @@ export function LongTermTaskPanel({
   onDelete,
   onRename,
   onColorChange,
-  onNoteChange,
+  onDetailsChange,
   onScheduleToday,
 }: LongTermTaskPanelProps) {
   const [input, setInput] = useState("");
@@ -80,10 +80,11 @@ export function LongTermTaskPanel({
     return (
       <section className="task-list-view long-term-view">
         <TaskDetailPanel
+          key={detailTask.id}
           task={detailTask}
           subTitle="长期待办"
           onRename={(title) => onRename(detailTask.id, title)}
-          onNoteChange={(note) => onNoteChange(detailTask.id, note)}
+          onDetailsChange={(update) => onDetailsChange(detailTask.id, update)}
         />
       </section>
     );

@@ -46,7 +46,7 @@ function AppShell() {
     deleteTask,
     updateTaskTitle,
     updateTaskColor,
-    updateTaskNote,
+    updateTaskDetails,
     copyTasksFromDate,
     getTaskProgressOnDate,
     updateMonthSummary,
@@ -57,7 +57,7 @@ function AppShell() {
     deleteLongTermTask,
     updateLongTermTaskTitle,
     updateLongTermTaskColor,
-    updateLongTermTaskNote,
+    updateLongTermTaskDetails,
     scheduleLongTermTaskToDate,
   } = tasks;
   const {
@@ -264,7 +264,7 @@ function AppShell() {
       onDelete={deleteLongTermTask}
       onRename={updateLongTermTaskTitle}
       onColorChange={updateLongTermTaskColor}
-      onNoteChange={updateLongTermTaskNote}
+      onDetailsChange={updateLongTermTaskDetails}
       onScheduleToday={(taskId) => {
         const todayKey = toDateKey(new Date());
         scheduleLongTermTaskToDate(taskId, todayKey, false);
@@ -302,8 +302,8 @@ function AppShell() {
         onRename={(taskId, title) =>
           updateTaskTitle(selectedDate, taskId, title)
         }
-        onNoteChange={(taskId, note) =>
-          updateTaskNote(selectedDate, taskId, note)
+        onDetailsChange={(taskId, update) =>
+          updateTaskDetails(selectedDate, taskId, update)
         }
         onColorChange={(taskId, colorId) =>
           updateTaskColor(selectedDate, taskId, colorId)

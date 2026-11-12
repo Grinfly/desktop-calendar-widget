@@ -1,6 +1,7 @@
 mod desktop;
 mod extensions;
 mod holidays;
+mod image_preview;
 mod storage;
 mod wallpaper;
 
@@ -448,6 +449,8 @@ pub fn run() {
             save_data,
             storage::export_task_backup,
             storage::read_task_backup,
+            image_preview::open_task_image_preview,
+            image_preview::load_task_image_preview,
             set_pin_mode,
             save_window_bounds,
             extensions::list_extensions,
@@ -574,6 +577,12 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if window.label() == image_preview::LABEL && matches!(event, WindowEvent::Destroyed) {
+                image_preview::clear();
+            }
+            if window.label() != "main" {
+                return;
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let _ = window.hide();
                 api.prevent_close();

@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "image-preview",
+  "description": "Allows closing the task image preview window",
+  "windows": ["task-image-preview"],
+  "permissions": ["core:window:allow-close"]
+}

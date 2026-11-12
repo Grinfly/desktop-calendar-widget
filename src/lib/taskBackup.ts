@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { parseDateKey, toDateKey } from "./dates";
+import { isTaskImage } from "./taskImages";
 import type { AppData, LongTermTask, Task } from "./types";
 
 export interface TaskBackup {
@@ -18,12 +19,15 @@ function readTask(value: unknown): LongTermTask {
     typeof value.id !== "string" || !value.id.trim() ||
     typeof value.title !== "string" || !value.title.trim() ||
     typeof value.done !== "boolean" || typeof value.note !== "string" ||
+    (value.noteImages !== undefined &&
+      (!Array.isArray(value.noteImages) || !value.noteImages.every(isTaskImage))) ||
     (value.color !== undefined && typeof value.color !== "string") ||
     (value.archived !== undefined && typeof value.archived !== "boolean")
   ) {
     throw new Error("备份中含有无效的待办记录");
   }
-  return { id: value.id, title: value.title, done: value.done, note: value.note, color: value.color, archived: value.archived };
+  const { id, title, done, note, noteImages, color, archived } = value;
+  return { id, title, done, note, noteImages, color, archived };
 }
 
 export function parseTaskBackup(json: string): TaskBackup {
@@ -48,8 +52,8 @@ export function parseTaskBackup(json: string): TaskBackup {
       throw new Error("备份中含有无效的日期待办列表");
     }
     tasks[key] = entries.map((entry) => {
-      const { id, title, done, note, color } = readTask(entry);
-      return { id, title, done, note, color };
+      const { archived: _archived, ...task } = readTask(entry);
+      return task;
     });
   }
   return { version: 1, tasks, longTermTasks: value.longTermTasks.map(readTask) };
