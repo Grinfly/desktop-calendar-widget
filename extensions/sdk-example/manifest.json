@@ -1,0 +1,9 @@
+{
+  "id": "sdk-example",
+  "name": "插件开发示例",
+  "version": "1.0.0",
+  "description": "演示任务接口、独立存储、首页卡片和设置面板，可随时停用。",
+  "entry": "index.js",
+  "apiVersion": 1,
+  "capabilities": ["tasks:read", "tasks:write", "ui:panels"]
+}

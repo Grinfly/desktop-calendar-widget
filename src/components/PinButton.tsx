@@ -3,15 +3,16 @@ import type { PinMode } from "../lib/types";
 
 interface PinButtonProps {
   mode: PinMode;
+  simulated?: boolean;
   onToggle: () => void;
 }
 
-export function PinButton({ mode, onToggle }: PinButtonProps) {
+export function PinButton({ mode, onToggle, simulated = false }: PinButtonProps) {
   const pinned = mode === "floating";
   const label = pinned ? "取消置顶" : "置顶悬浮";
 
   return (
-    <Tooltip content={label}>
+    <Tooltip content={simulated ? `模拟：${label}（系统置顶仅桌面版）` : label}>
       <button
         type="button"
         className={`pin-button ${pinned ? "floating" : "desktop"}`}

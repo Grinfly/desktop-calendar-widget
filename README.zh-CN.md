@@ -95,6 +95,8 @@ npm run build:ext:lunar
 
 产物：`dist-extensions/lunar.cando-ext`。打开设置 → 安装扩展，选中该文件。卸载后扩展目录会从 `%APPDATA%/desktop-calendar-widget/extensions/` 删除。
 
+扩展开发接口、兼容规则和示例见 [扩展开发文档](docs/extensions.md)。API 1 支持任务读写、事件订阅、独立存储、首页/设置面板和启停清理。
+
 ## 技术栈
 
 - **前端**：React 19 · TypeScript · Vite

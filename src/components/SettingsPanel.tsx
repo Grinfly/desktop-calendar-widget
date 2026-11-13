@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { ExtensionSlot } from "../extensions/ExtensionSlot";
 import { useExtensions } from "../extensions/ExtensionContext";
 import { exportTaskBackup, importTaskBackup, type TaskBackup } from "../lib/taskBackup";
 import type { AppData } from "../lib/types";
@@ -507,6 +508,7 @@ function CityPicker() {
 }
 
 interface SettingsPanelProps {
+  browserDemo?: boolean;
   taskData: Pick<AppData, "tasks" | "longTermTasks">;
   onImportTaskBackup: (backup: TaskBackup) => void;
   backgroundOpacity: number;
@@ -521,6 +523,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({
+  browserDemo = false,
   taskData,
   onImportTaskBackup,
   backgroundOpacity,
@@ -533,7 +536,7 @@ export function SettingsPanel({
   onFollowWallpaperTextChange,
   onClose,
 }: SettingsPanelProps) {
-  const { manifests, install, uninstall, worldEvent, error } = useExtensions();
+  const { manifests, states, install, uninstall, setEnabled, busy, worldEvent, error } = useExtensions();
   const [backupBusy, setBackupBusy] = useState(false);
   const [backupStatus, setBackupStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [pendingUninstall, setPendingUninstall] = useState<{
@@ -602,7 +605,7 @@ export function SettingsPanel({
           <span className="settings-value">{backgroundOpacity}%</span>
         </div>
         <p className="settings-hint">数值越低，背景越透明，可透出桌面壁纸。</p>
-        <div className="settings-toggle-row">
+        {browserDemo ? <p className="settings-hint">跟随系统壁纸配色仅桌面版支持。</p> : <div className="settings-toggle-row">
           <label className="settings-toggle">
             <input
               type="checkbox"
@@ -622,7 +625,7 @@ export function SettingsPanel({
             />
             文字颜色也跟随
           </label>
-        </div>
+        </div>}
       </div>
 
       <div className="settings-section">
@@ -653,6 +656,7 @@ export function SettingsPanel({
           <button
             type="button"
             className="settings-action-button"
+            disabled={browserDemo || busy}
             onClick={() => void install()}
           >
             安装扩展…
@@ -660,11 +664,11 @@ export function SettingsPanel({
         </div>
         {manifests.length === 0 ? (
           <p className="settings-hint">
-            尚未安装扩展。农历、节气和节日需单独下载安装。
+            {browserDemo ? "扩展需在 Windows 桌面版安装。" : "尚未安装扩展。农历、节气和节日需单独下载安装。"}
           </p>
         ) : (
           <ul className="settings-ext-list">
-            {manifests.map((manifest) => (
+            {states.map(({ manifest, status, error: extensionError }) => (
               <li key={manifest.id} className="settings-ext-item">
                 <div className="settings-ext-row">
                   <div className="settings-ext-copy">
@@ -677,6 +681,15 @@ export function SettingsPanel({
                   </div>
                   <button
                     type="button"
+                    className="settings-action-button"
+                    disabled={busy || status === "incompatible" || status === "loading"}
+                    onClick={() => void setEnabled(manifest.id, status !== "active")}
+                  >
+                    {status === "active" ? "停用" : status === "error" ? "重试" : "启用"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
                     className="settings-action-button danger"
                     onClick={() =>
                       setPendingUninstall({
@@ -688,7 +701,11 @@ export function SettingsPanel({
                     卸载
                   </button>
                 </div>
-                {manifest.id === "lunar" ? (
+                <p className={extensionError ? "settings-error" : "extension-status"} role="status">
+                  {extensionError ?? ({ active: "已启用", disabled: "已停用", loading: "加载中…", error: "加载失败", incompatible: "版本不兼容" }[status])}
+                </p>
+                <ExtensionSlot slot="settings" extensionId={manifest.id} />
+                {manifest.id === "lunar" && status === "active" ? (
                   <label className="settings-toggle">
                     <input
                       type="checkbox"
@@ -700,7 +717,7 @@ export function SettingsPanel({
                     显示班休
                   </label>
                 ) : null}
-                {manifest.id === "world-invasion" ? (
+                {manifest.id === "world-invasion" && status === "active" ? (
                   <div style={{ marginTop: 2 }}>
                     <CityPicker />
                     <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>

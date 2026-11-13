@@ -19,14 +19,14 @@ import { ResizeHandles } from "./components/ResizeHandles";
 import { TitleBar } from "./components/TitleBar";
 import { HolidayFx } from "./components/HolidayFx";
 import { WorldFx } from "./components/WorldFx";
+import { ExtensionSlot } from "./extensions/ExtensionSlot";
 import { ExtensionProvider, useExtensions } from "./extensions/ExtensionContext";
 import "./styles/global.css";
 
 type PickerMode = "month" | "date" | "copy" | null;
 
-function AppShell() {
+function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnType<typeof useTasks> }) {
   useDateTick();
-  const tasks = useTasks();
   const extensions = useExtensions();
   const {
     data,
@@ -62,7 +62,6 @@ function AppShell() {
   } = tasks;
   const {
     loaded: extensionsLoaded,
-    manifests,
     getDaySubLabel,
     getDayBadge,
     getDayAtmosphere,
@@ -70,8 +69,7 @@ function AppShell() {
   } = extensions;
 
   const dayBadge =
-    (data.settings.showWorkRestBadges ?? true) &&
-    manifests.some((manifest) => manifest.id === "lunar")
+    (data.settings.showWorkRestBadges ?? true) && extensions.hasDayBadges
       ? getDayBadge
       : undefined;
 
@@ -178,7 +176,7 @@ function AppShell() {
     let locked = false;
     let unlockTimer = 0;
     const onWheel = (event: WheelEvent) => {
-      if (event.deltaY === 0) return;
+      if (event.deltaY === 0 || (event.target instanceof Element && event.target.closest(".extension-slot"))) return;
       event.preventDefault();
       if (locked) return;
       locked = true;
@@ -240,6 +238,7 @@ function AppShell() {
 
   const mainContent = showSettings ? (
     <SettingsPanel
+      browserDemo={browserDemo}
       taskData={data}
       onImportTaskBackup={importTaskBackup}
       backgroundOpacity={data.settings.backgroundOpacity ?? 100}
@@ -291,6 +290,7 @@ function AppShell() {
       />
     ) : (
       <TaskList
+        autoFocusInput={!browserDemo}
         dateKey={selectedDate}
         tasks={selectedTasks}
         detailTaskId={detailTaskId}
@@ -347,7 +347,7 @@ function AppShell() {
 
   return (
     <div className="widget-shell">
-      <ResizeHandles />
+      {!browserDemo && <ResizeHandles />}
       <div className="widget-card">
         <HolidayFx kind={getDayAtmosphere(new Date())} />
         <WorldFx event={worldEvent} active={!showSettings} />
@@ -356,6 +356,7 @@ function AppShell() {
           <>
             <TitleBar
               month={currentMonth}
+              browserDemo={browserDemo}
               pinMode={data.settings.pinMode}
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
@@ -372,6 +373,7 @@ function AppShell() {
           <>
             <TitleBar
               month={currentMonth}
+              browserDemo={browserDemo}
               pinMode={data.settings.pinMode}
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
@@ -402,6 +404,7 @@ function AppShell() {
           <>
             <TitleBar
               month={currentMonth}
+              browserDemo={browserDemo}
               pinMode={data.settings.pinMode}
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
@@ -434,16 +437,20 @@ function AppShell() {
             {mainContent}
           </>
         )}
+        {!showSettings && !showLongTermTasks && !showMonthSummary && pickerMode === null && !detailTaskId && (
+          <ExtensionSlot slot="dashboard" />
+        )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function App() {
+export default function App({ browserDemo = false }: { browserDemo?: boolean }) {
+  const tasks = useTasks();
   return (
-    <ExtensionProvider>
-      <AppShell />
+    <ExtensionProvider tasks={tasks}>
+      <AppShell browserDemo={browserDemo} tasks={tasks} />
     </ExtensionProvider>
   );
 }

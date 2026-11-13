@@ -1,3 +1,5 @@
+import type { ExtensionAPI } from "../../src/extensions/types";
+
 /**
  * world-invasion 扩展
  *
@@ -24,9 +26,26 @@ interface WorldEventState {
 // ─── 当前事件缓存 ───────────────────────────────────────────────────────────
 
 let currentEvent: WorldEventState | undefined;
+let extensionApi: ExtensionAPI;
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const controller = new AbortController();
+  const cancel = extensionApi.onCleanup(() => controller.abort());
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json() as T;
+  } finally {
+    clearTimeout(timeout);
+    cancel();
+  }
+}
 
 function setEvent(next: WorldEventState | undefined) {
+  if (extensionApi.signal.aborted) return;
   currentEvent = next;
+  extensionApi.invalidate();
   if (next) {
     console.log("[WorldInvasion] Active event set:", next);
   }
@@ -45,11 +64,10 @@ let userLon = 117.1727;
 
 async function autoResolveDistrict(): Promise<void> {
   try {
-    const res = await fetch(
+    const data = await fetchJson<{ locality?: string; city?: string; principalSubdivision?: string; latitude?: number; longitude?: number }>(
       "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=zh"
     );
-    if (!res.ok) return;
-    const data = await res.json();
+    if (extensionApi.signal.aborted) return;
     const district =
       data.locality ||
       data.city ||
@@ -173,10 +191,10 @@ async function checkWeather(): Promise<void> {
       `?latitude=${userLat}&longitude=${userLon}` +
       `&current=weathercode,windspeed_10m` +
       `&wind_speed_unit=kmh&timezone=auto`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    const data = (await res.json()) as {
+    const data = await fetchJson<{
       current?: { weathercode: number; windspeed_10m: number };
-    };
+    }>(url);
+    if (extensionApi.signal.aborted) return;
     if (!data.current) return;
     const { weathercode, windspeed_10m } = data.current;
     console.log("[WorldInvasion] Weather data:", userCity, weathercode, "wind:", windspeed_10m);
@@ -200,8 +218,8 @@ async function checkEarthquake(): Promise<void> {
   try {
     const url =
       "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    const data = (await res.json()) as { features?: EqFeature[] };
+    const data = await fetchJson<{ features?: EqFeature[] }>(url);
+    if (extensionApi.signal.aborted) return;
     if (!data.features) return;
 
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
@@ -251,8 +269,8 @@ function parseFlareIntensity(id: string): number {
 async function checkSolarFlare(): Promise<void> {
   try {
     const url = "https://services.swpc.noaa.gov/products/alerts.json";
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    const alerts = (await res.json()) as SwpcAlert[];
+    const alerts = await fetchJson<SwpcAlert[]>(url);
+    if (extensionApi.signal.aborted) return;
     if (!Array.isArray(alerts)) return;
 
     const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
@@ -285,7 +303,9 @@ async function checkSolarFlare(): Promise<void> {
 
 // ─── 公共导出 ─────────────────────────────────────────────────────────────────
 
-export async function init(): Promise<void> {
+export async function init(api: ExtensionAPI): Promise<void> {
+  extensionApi = api;
+  currentEvent = undefined;
   console.log("[WorldInvasion] Initializing extension for", userCity);
   loadConfiguredLocation();
 
@@ -300,12 +320,12 @@ export async function init(): Promise<void> {
         console.log("[WorldInvasion] City switched to:", userCity);
         void checkWeather();
       }
-    }) as EventListener);
+    }) as EventListener, { signal: api.signal });
 
     // 监听手动模拟
     window.addEventListener("world-invasion:simulate", ((e: CustomEvent<WorldEventState | undefined>) => {
       setEvent(e.detail);
-    }) as EventListener);
+    }) as EventListener, { signal: api.signal });
   }
 
   // 立即检查天气
@@ -318,9 +338,9 @@ export async function init(): Promise<void> {
   ]);
 
   // 定时轮询
-  setInterval(() => void checkWeather(), 10 * 60 * 1000);
-  setInterval(() => void checkEarthquake(), 10 * 60 * 1000);
-  setInterval(() => void checkSolarFlare(), 30 * 60 * 1000);
+  api.timers.setInterval(() => void checkWeather(), 10 * 60 * 1000);
+  api.timers.setInterval(() => void checkEarthquake(), 10 * 60 * 1000);
+  api.timers.setInterval(() => void checkSolarFlare(), 30 * 60 * 1000);
 }
 
 export function getWorldEvent(): WorldEventState | undefined {

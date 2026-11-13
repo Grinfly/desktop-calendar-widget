@@ -2,11 +2,13 @@ import { Tooltip } from "./Tooltip";
 
 interface TodayMonthButtonProps {
   active?: boolean;
+  iconSrc?: string;
   onGoToTodayMonth: () => void;
 }
 
 export function TodayMonthButton({
   active = false,
+  iconSrc = "/favicon.png",
   onGoToTodayMonth,
 }: TodayMonthButtonProps) {
   return (
@@ -22,7 +24,7 @@ export function TodayMonthButton({
         }}
       >
         <img
-          src="/favicon.png"
+          src={iconSrc}
           alt=""
           className="title-action-icon today-month-icon"
           width={18}

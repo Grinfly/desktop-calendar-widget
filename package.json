@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test:extensions": "node --test scripts/test-extensions.mjs",
+    "build:extension": "node scripts/build-extension.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
     "build:windows": "scripts\\build-windows.bat",
@@ -28,6 +30,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "esbuild": "^0.28.1",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }

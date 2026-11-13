@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { applyTaskCommand } from "../extensions/taskApi";
+import type { TaskCommand } from "../extensions/types";
 import { v4 as uuidv4 } from "uuid";
 
 import { parseDateKey, toDateKey } from "../lib/dates";
@@ -24,6 +26,8 @@ export function useTasks() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState<AppView>("calendar");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   const persist = useCallback((next: AppData) => {
     if (saveTimer.current) {
@@ -133,6 +137,15 @@ export function useTasks() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [loaded, data.settings.followWallpaper, data.settings.followWallpaperText]);
+
+  const flush = useCallback(async () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    await saveAppData(dataRef.current);
+  }, []);
+
+  const extensionCommand = useCallback((command: TaskCommand) => {
+    updateData((prev) => applyTaskCommand(prev, command));
+  }, [updateData]);
 
   const updateSettings = useCallback(
     (patch: Partial<AppSettings>) => {
@@ -495,6 +508,8 @@ export function useTasks() {
 
   return {
     data,
+    flush,
+    extensionCommand,
     importTaskBackup,
     loaded,
     currentMonth,

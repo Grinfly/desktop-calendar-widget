@@ -8,6 +8,7 @@ import { Tooltip } from "./Tooltip";
 
 interface TaskListProps {
   dateKey: string;
+  autoFocusInput?: boolean;
   tasks: Task[];
   detailTaskId: string | null;
   onOpenDetail: (taskId: string) => void;
@@ -25,6 +26,7 @@ interface TaskListProps {
 
 export function TaskList({
   dateKey,
+  autoFocusInput = true,
   tasks,
   detailTaskId,
   onOpenDetail,
@@ -47,8 +49,8 @@ export function TaskList({
   const detailTask = tasks.find((task) => task.id === detailTaskId);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [dateKey]);
+    if (autoFocusInput) inputRef.current?.focus();
+  }, [dateKey, autoFocusInput]);
 
   useEffect(() => {
     setPendingDeleteId(null);

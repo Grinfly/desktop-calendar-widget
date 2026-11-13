@@ -10,7 +10,7 @@ interface PreviewImage {
   count: number;
 }
 
-export function TaskImagePreview() {
+export function TaskImagePreview({ onClose }: { onClose?: () => void }) {
   const [image, setImage] = useState<PreviewImage | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,15 +51,22 @@ export function TaskImagePreview() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") void getCurrentWindow().close();
+      if (event.key === "Escape") {
+        if (onClose) {
+          event.stopImmediatePropagation();
+          onClose();
+        } else {
+          void getCurrentWindow().close();
+        }
+      }
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
         void changeImage(event.key === "ArrowLeft" ? -1 : 1);
       }
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [changeImage]);
+    window.addEventListener("keydown", onKeyDown, Boolean(onClose));
+    return () => window.removeEventListener("keydown", onKeyDown, Boolean(onClose));
+  }, [changeImage, onClose]);
 
   useEffect(() => {
     const area = viewport.current;
@@ -154,6 +161,7 @@ export function TaskImagePreview() {
           >
             {zoomWidth === null ? "原始大小" : "适应窗口"}
           </button>
+          {onClose && <button type="button" onClick={onClose}>关闭</button>}
         </div>
       </header>
       <div

@@ -11,6 +11,7 @@ import { Tooltip } from "./Tooltip";
 
 interface TitleBarProps {
   month: Date;
+  browserDemo?: boolean;
   pinMode: PinMode;
   onPinToggle: () => void;
   onOpenSettings: () => void;
@@ -31,6 +32,7 @@ interface TitleBarProps {
 
 export function TitleBar({
   month,
+  browserDemo = false,
   pinMode,
   onPinToggle,
   onOpenSettings,
@@ -165,10 +167,11 @@ export function TitleBar({
         {showMonthNav && onGoToTodayMonth && !longTermTasksOpen ? (
           <TodayMonthButton
             active={isTodayMonth}
+            iconSrc={browserDemo ? "assets/bean.png" : undefined}
             onGoToTodayMonth={onGoToTodayMonth}
           />
         ) : null}
-        <PinButton mode={pinMode} onToggle={onPinToggle} />
+        <PinButton mode={pinMode} onToggle={onPinToggle} simulated={browserDemo} />
         <SettingsButton active={settingsOpen} onOpen={onOpenSettings} />
       </div>
     </header>

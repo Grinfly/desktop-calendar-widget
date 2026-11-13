@@ -18,6 +18,10 @@ pub struct ExtensionManifest {
     #[serde(default)]
     pub description: String,
     pub entry: String,
+    #[serde(default, rename = "apiVersion", skip_serializing_if = "Option::is_none")]
+    pub api_version: Option<u32>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub capabilities: Vec<String>,
 }
 
 fn extensions_dir() -> Result<PathBuf, String> {
@@ -276,6 +280,22 @@ mod tests {
             zip.write_all(contents.as_bytes()).unwrap();
         }
         zip.finish().unwrap();
+    }
+
+    #[test]
+    fn preserves_api_contract_and_legacy_manifests() {
+        let legacy = parse_manifest(r#"{"id":"legacy","name":"旧扩展","entry":"index.js"}"#).unwrap();
+        assert_eq!(legacy.api_version, None);
+        assert!(legacy.capabilities.is_empty());
+        let legacy_json = serde_json::to_value(&legacy).unwrap();
+        assert!(legacy_json.get("apiVersion").is_none());
+
+        let modern = parse_manifest(r#"{"id":"modern","name":"新扩展","entry":"index.js","apiVersion":1,"capabilities":["tasks:read","ui:panels"]}"#).unwrap();
+        assert_eq!(modern.api_version, Some(1));
+        let serialized = serde_json::to_value(&modern).unwrap();
+        assert_eq!(serialized["apiVersion"], 1);
+        assert_eq!(serialized["capabilities"][0], "tasks:read");
+        assert_eq!(parse_manifest(&serialized.to_string()).unwrap(), modern);
     }
 
     #[test]
