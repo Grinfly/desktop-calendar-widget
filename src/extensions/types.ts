@@ -1,7 +1,7 @@
 import type { Task, LongTermTask } from "../lib/types";
 
 export const EXTENSION_API_VERSION = 1;
-export const EXTENSION_CAPABILITIES = ["tasks:read", "tasks:write", "ui:panels"] as const;
+export const EXTENSION_CAPABILITIES = ["tasks:read", "tasks:write", "ui:panels", "ui:appearance"] as const;
 export type ExtensionCapability = (typeof EXTENSION_CAPABILITIES)[number];
 
 export interface ExtensionManifest {
@@ -52,6 +52,16 @@ export interface ExtensionPanel {
   mount(container: HTMLElement): void | Cleanup;
 }
 
+export const WIDGET_FONTS = ["default", "sans", "serif", "kai", "mono"] as const;
+export const WIDGET_FONT_STYLES = ["default", "bold", "italic", "bold-italic"] as const;
+
+export interface WidgetAppearance {
+  color: string | null;
+  font: (typeof WIDGET_FONTS)[number];
+  style: (typeof WIDGET_FONT_STYLES)[number];
+  autoContrast?: boolean;
+}
+
 export interface ExtensionAPI {
   readonly apiVersion: typeof EXTENSION_API_VERSION;
   readonly extensionId: string;
@@ -76,7 +86,12 @@ export interface ExtensionAPI {
     setInterval(callback: () => void, milliseconds: number): Cleanup;
     setTimeout(callback: () => void, milliseconds: number): Cleanup;
   };
-  ui: { registerPanel(panel: ExtensionPanel): Cleanup };
+  ui: {
+    registerPanel(panel: ExtensionPanel): Cleanup;
+    setAppearance(appearance: WidgetAppearance | null): void;
+    /** 迁移旧版主程序的自定义文字颜色。 */
+    getLegacyTextColor(): string | null;
+  };
   onCleanup(cleanup: Cleanup): Cleanup;
   /** 日期信息或世界事件缓存改变后，请求宿主刷新。 */
   invalidate(): void;

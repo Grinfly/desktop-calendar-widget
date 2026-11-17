@@ -13,6 +13,9 @@ export async function loadAppData(): Promise<AppData> {
       settings: {
         ...DEFAULT_APP_DATA.settings,
         ...parsed.settings,
+        textColor: typeof parsed.settings?.textColor === "string" && /^#[0-9a-f]{6}$/i.test(parsed.settings.textColor)
+          ? parsed.settings.textColor
+          : null,
       },
     };
   } catch {

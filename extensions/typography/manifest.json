@@ -1,0 +1,9 @@
+{
+  "id": "typography",
+  "name": "文字外观",
+  "version": "1.1.6",
+  "description": "自定义日历、待办和设置的文字颜色、字体和字形。",
+  "entry": "index.js",
+  "apiVersion": 1,
+  "capabilities": ["ui:panels", "ui:appearance"]
+}

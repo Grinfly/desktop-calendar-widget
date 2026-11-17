@@ -6,12 +6,13 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundled = await build({
   stdin: {
-    contents: 'export * from "./src/extensions/runtime.ts"; export * from "./src/extensions/taskApi.ts";',
+    contents: 'export * from "./src/extensions/runtime.ts"; export * from "./src/extensions/taskApi.ts"; export * from "./src/lib/textContrast.ts"; export * as typography from "./extensions/typography/index.ts";',
     resolveDir: root,
   },
   bundle: true, platform: "node", format: "esm", write: false,
 });
-const { ExtensionRuntime, compatibilityError, applyTaskCommand, listExtensionTasks, diffTasks } =
+const { ExtensionRuntime, compatibilityError, applyTaskCommand, listExtensionTasks, diffTasks, typography,
+  backdropForRegion, blendRgb, classifyBackdrop, classifyBackdropRows, classifyBackdropSides, contrastingTextColor, hexToRgb, luminance } =
   await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString("base64")}`);
 
 const manifest = (id, extra = {}) => ({ id, name: id, version: "1.0.0", entry: "index.js", description: "", apiVersion: 1, ...extra });
@@ -19,11 +20,12 @@ const memory = () => {
   const values = new Map();
   return { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: (key) => values.delete(key) };
 };
-const fixture = (modules, storage = memory()) => {
+const fixture = (modules, storage = memory(), legacyColor = null) => {
   let data = { tasks: {}, longTermTasks: [], monthSummaries: {}, settings: {} };
   const runtime = new ExtensionRuntime({
     listTasks: (dateKey) => listExtensionTasks(data, dateKey),
     writeTask: (command) => { data = applyTaskCommand(data, command); },
+    getLegacyTextColor: () => legacyColor,
   }, storage, async ({ id }) => {
     const value = modules[id];
     if (value instanceof Error) throw value;
@@ -164,6 +166,115 @@ test("未声明任务或面板能力时拒绝调用", async (t) => {
   assert.throws(() => api.tasks.create(null, "任务"), /tasks:write/);
   assert.throws(() => api.events.on("task:completed", () => {}), /tasks:read/);
   assert.throws(() => api.ui.registerPanel({}), /ui:panels/);
+  assert.throws(() => api.ui.setAppearance(null), /ui:appearance/);
+  assert.throws(() => api.ui.getLegacyTextColor(), /ui:appearance/);
+});
+
+test("外观设置实时更新，停用清除且重启后恢复已保存的颜色和字形", async (t) => {
+  let api;
+  const module = { init(value) { api = value; typography.init(value); } };
+  const extension = manifest("typography", { capabilities: ["ui:panels", "ui:appearance"] });
+  const { runtime, storage } = fixture({ typography: module }, undefined, "#ffcc00");
+  t.after(() => runtime.dispose());
+  await runtime.start([extension]);
+  assert.deepEqual(runtime.appearance, { color: "#ffcc00", font: "default", style: "default" });
+  assert.equal(runtime.panels[0].slot, "settings");
+
+  const appearance = { color: null, font: "kai", style: "bold-italic", autoContrast: true };
+  assert.throws(() => api.ui.setAppearance({ ...appearance, font: "url(evil)" }), /无效/);
+  assert.throws(() => api.ui.setAppearance({ ...appearance, color: "red" }), /无效/);
+  assert.throws(() => api.ui.setAppearance({ ...appearance, autoContrast: "yes" }), /无效/);
+  api.storage.set("appearance", appearance);
+  api.ui.setAppearance(appearance);
+  assert.deepEqual(runtime.appearance, appearance);
+
+  await runtime.setEnabled("typography", false);
+  assert.equal(runtime.appearance, undefined);
+  assert.equal(runtime.panels.length, 0);
+  assert.throws(() => api.ui.setAppearance(appearance), /已停用/);
+  await runtime.setEnabled("typography", true);
+  assert.deepEqual(runtime.appearance, appearance);
+  runtime.dispose();
+  assert.equal(runtime.appearance, undefined);
+
+  const reopened = fixture({ typography }, storage, "#ffcc00").runtime;
+  t.after(() => reopened.dispose());
+  await reopened.start([extension]);
+  assert.deepEqual(reopened.appearance, appearance);
+});
+
+test("低透明度按壁纸调整文字，足够清晰时保留原色", () => {
+  const card = [247, 243, 236];
+  const dark = blendRgb([15, 18, 25], card, 0.2);
+  const light = blendRgb([240, 228, 218], card, 0);
+  const preferred = "#234068";
+  const adjustedDark = contrastingTextColor(preferred, dark);
+  assert.notEqual(adjustedDark, preferred);
+  assert.equal(contrastingTextColor(preferred, light), preferred);
+  assert.equal(contrastingTextColor(preferred, blendRgb(dark, card, 1)), preferred);
+  const adjustedLight = contrastingTextColor("#ffffff", light);
+  for (const [foreground, background] of [[adjustedDark, dark], [adjustedLight, light]]) {
+    const values = [luminance(hexToRgb(foreground)), luminance(background)];
+    const ratio = (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
+    assert.ok(ratio >= 4.5, `contrast ${ratio}`);
+  }
+});
+
+test("背景按取样占比判断，达到 75% 时忽略少数异色点", () => {
+  const card = [247, 243, 236];
+  const white = [255, 255, 255];
+  const lightGray = [220, 220, 220];
+  const black = [0, 0, 0];
+  const darkGray = [40, 40, 40];
+  const repeat = (count, rgb) => Array(count).fill(rgb);
+  assert.deepEqual(classifyBackdrop([...repeat(5, white), lightGray, black, black], card, 0),
+    { background: lightGray, mixed: false });
+  assert.deepEqual(classifyBackdrop([...repeat(5, black), darkGray, white, white], card, 0),
+    { background: darkGray, mixed: false });
+  assert.equal(classifyBackdrop([...repeat(5, white), ...repeat(3, black)], card, 0).mixed, true);
+  assert.deepEqual(classifyBackdrop([black, white], card, 1), { background: card, mixed: false });
+  assert.equal(classifyBackdrop([black, white], card, 0.8).mixed, false);
+});
+
+test("上方深底和下方浅底分别计算颜色，不把两个区域合成混色背景", () => {
+  const dark = [18, 24, 40];
+  const light = [250, 250, 250];
+  const samples = [[0, 0.031, dark], [1, 0.09, dark], [0, 0.2, light], [1, 0.5, light], [0, 0.85, light], [1, 0.98, light]];
+  const card = [247, 243, 236];
+  const preferred = "#1c1a17";
+  const header = classifyBackdrop(backdropForRegion(samples, 0, 0.15), card, 0);
+  const content = classifyBackdrop(backdropForRegion(samples, 0.15, 0.8), card, 0);
+  const footer = classifyBackdrop(backdropForRegion(samples, 0.8, 1), card, 0);
+  assert.notEqual(contrastingTextColor(preferred, header.background), preferred);
+  assert.equal(contrastingTextColor(preferred, content.background), preferred);
+  assert.equal(contrastingTextColor(preferred, footer.background), preferred);
+  assert.ok([header, content, footer].every((region) => !region.mixed));
+});
+
+test("同一排左右深浅相反时分开计算，整排同色或被不透明底色盖住时不分", () => {
+  const white = [245, 245, 245];
+  const black = [12, 12, 12];
+  const card = [247, 243, 236];
+  const samples = [[0, 0.25, white], [1, 0.25, black], [0, 0.65, white], [1, 0.65, white]];
+  assert.deepEqual(classifyBackdropSides(samples, 0.1, 0.5, card, 0), { left: white, right: black });
+  assert.equal(classifyBackdropSides(samples, 0.5, 0.8, card, 0), null);
+  assert.equal(classifyBackdropSides(samples, 0.1, 0.5, card, 1), null);
+  assert.equal(classifyBackdropSides([[0, 0.25, white]], 0.1, 0.5, card, 0), null);
+});
+
+test("同一内容区内连续的浅色和深色行分别调整，忽略单行干扰", () => {
+  const white = [245, 245, 245];
+  const black = [12, 12, 12];
+  const card = [247, 243, 236];
+  const samples = [[0, 0.2, white], [0, 0.3, white], [0, 0.5, white], [0, 0.7, black], [0, 0.85, black]];
+  assert.deepEqual(classifyBackdropRows(samples, 0.1, 1, card, 0), [
+    { top: 0.1, bottom: 0.6, background: white },
+    { top: 0.6, bottom: 1, background: black },
+  ]);
+  assert.deepEqual(classifyBackdropRows(samples.slice(0, 4), 0.1, 1, card, 0), []);
+  assert.deepEqual(classifyBackdropRows(samples, 0.1, 1, card, 1), []);
+  const reverse = samples.map(([x, y, color]) => [x, y, color === white ? black : white]);
+  assert.deepEqual(classifyBackdropRows(reverse, 0.1, 1, card, 0).map((row) => row.background), [black, white]);
 });
 
 test("任务差异以日期和 ID 定位，重复渲染不会重复产生事件", () => {

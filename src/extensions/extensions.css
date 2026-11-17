@@ -20,7 +20,7 @@
 .extension-panel-title {
   margin: 0 0 5px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
 }
 
 .extension-panel button,

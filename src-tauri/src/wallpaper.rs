@@ -9,6 +9,7 @@ const BORDER: (u8, u8, u8) = (229, 223, 212);
 #[serde(rename_all = "camelCase")]
 pub struct WallpaperTheme {
     pub bg_rgb: String,
+    pub wallpaper_rgb: [u8; 3],
     pub accent: String,
     pub muted: String,
     pub sub_label: String,
@@ -108,6 +109,7 @@ pub fn theme_from_average(r: u8, g: u8, b: u8) -> WallpaperTheme {
     let border = mix_rgb(BORDER, (r, g, b), 0.12);
     WallpaperTheme {
         bg_rgb: format!("{}, {}, {}", bg.0, bg.1, bg.2),
+        wallpaper_rgb: [r, g, b],
         accent: hex(accent),
         muted: hex(muted),
         sub_label: hex(sub),
@@ -230,6 +232,71 @@ pub fn sample_wallpaper_theme() -> Option<WallpaperTheme> {
     let path = desktop_wallpaper_path()?;
     let (r, g, b) = average_color(&path).ok()?;
     Some(theme_from_average(r, g, b))
+}
+
+#[tauri::command]
+pub async fn sample_desktop_backdrop(window: tauri::WebviewWindow) -> Option<Vec<(f64, f64, [u8; 3])>> {
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::{HWND, POINT, RECT};
+        use windows::Win32::Graphics::Gdi::{GetDC, GetPixel, ReleaseDC};
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetAncestor, GetWindowRect, WindowFromPoint, GA_ROOT,
+        };
+
+        if window.label() != "main" || !window.is_visible().ok()? {
+            return None;
+        }
+        let hwnd = HWND(window.hwnd().ok()?.0 as _);
+        let mut rect = RECT::default();
+        unsafe { GetWindowRect(hwnd, &mut rect) }.ok()?;
+        let width = rect.right - rect.left;
+        let height = rect.bottom - rect.top;
+        if width <= 0 || height <= 0 {
+            return None;
+        }
+
+        // Sample outside the card, preserving both axes and accepting adjacent apps.
+        let across = |y| [1, 3, 5, 7].map(move |eighth| POINT { x: rect.left + width * eighth / 8, y });
+        let sides = (1..16).step_by(2).flat_map(|part| {
+            let y = rect.top + height * part / 16;
+            [POINT { x: rect.left - 5, y }, POINT { x: rect.right + 5, y }]
+        });
+        let points = across(rect.top - 5).into_iter().chain(sides).chain(across(rect.bottom + 5));
+        let dc = unsafe { GetDC(HWND::default()) };
+        if dc.0.is_null() {
+            return None;
+        }
+        let mut samples = Vec::with_capacity(24);
+        for point in points {
+            let x = point.x.clamp(rect.left, rect.right - 1);
+            let y = point.y.clamp(rect.top, rect.bottom - 1);
+            let root = unsafe { GetAncestor(WindowFromPoint(point), GA_ROOT) };
+            let mut bounds = RECT::default();
+            if root.0.is_null() || root == hwnd
+                || unsafe { GetWindowRect(root, &mut bounds) }.is_err()
+                || !(bounds.left..bounds.right).contains(&x)
+                || !(bounds.top..bounds.bottom).contains(&y)
+            {
+                continue;
+            }
+            let pixel = unsafe { GetPixel(dc, point.x, point.y) }.0;
+            if pixel != u32::MAX {
+                samples.push((
+                    f64::from(x - rect.left) / f64::from(width),
+                    f64::from(y - rect.top) / f64::from(height),
+                    [pixel as u8, (pixel >> 8) as u8, (pixel >> 16) as u8],
+                ));
+            }
+        }
+        unsafe { ReleaseDC(HWND::default(), dc) };
+        (!samples.is_empty()).then_some(samples)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = window;
+        None
+    }
 }
 
 #[tauri::command]

@@ -459,6 +459,7 @@ pub fn run() {
             extensions::read_extension_entry,
             holidays::load_work_rest_days,
             wallpaper::sample_wallpaper_theme,
+            wallpaper::sample_desktop_backdrop,
             wallpaper::wallpaper_source_revision
         ])
         .setup(|app| {

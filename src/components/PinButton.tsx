@@ -24,9 +24,19 @@ export function PinButton({ mode, onToggle, simulated = false }: PinButtonProps)
         }}
         aria-pressed={pinned}
       >
-        <span className="title-action-icon pin-icon" aria-hidden="true">
-          📌
-        </span>
+        <svg
+          className="title-action-icon pin-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M8 4h8M12 16v5" />
+          <path d="M9 4h6l-1 6 3 4v2H7v-2l3-4-1-6Z" fill={pinned ? "currentColor" : "none"} />
+        </svg>
       </button>
     </Tooltip>
   );

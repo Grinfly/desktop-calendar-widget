@@ -1,14 +1,15 @@
 import { normalizeTaskPatch, validateDateKey } from "./taskApi";
 import {
-  EXTENSION_API_VERSION, EXTENSION_CAPABILITIES, WORLD_EVENT_TYPES, asDayAtmosphere,
+  EXTENSION_API_VERSION, EXTENSION_CAPABILITIES, WIDGET_FONTS, WIDGET_FONT_STYLES, WORLD_EVENT_TYPES, asDayAtmosphere,
   type Cleanup, type ExtensionAPI, type ExtensionEvents, type ExtensionManifest,
   type ExtensionModule, type ExtensionPanel, type ExtensionTask, type JsonValue,
-  type TaskCommand, type WorldEvent,
+  type TaskCommand, type WidgetAppearance, type WorldEvent,
 } from "./types";
 
 export interface ExtensionHost {
   listTasks(dateKey?: string | null): ExtensionTask[];
   writeTask(command: TaskCommand): void;
+  getLegacyTextColor?(): string | null;
 }
 
 export interface ExtensionState {
@@ -26,6 +27,7 @@ interface Entry extends ExtensionState {
   cleanups: Set<Cleanup>;
   module?: ExtensionModule;
   panels: RegisteredPanel[];
+  appearance?: Readonly<WidgetAppearance>;
 }
 
 type Listener = { entry: Entry; handler: (event: never) => void };
@@ -94,6 +96,11 @@ export class ExtensionRuntime {
     return [...this.entries.values()].filter((entry) => entry.status === "active").flatMap((entry) => entry.panels);
   }
 
+  get appearance(): Readonly<WidgetAppearance> | undefined {
+    if (this.stopped) return undefined;
+    return [...this.entries.values()].find((entry) => entry.status === "active" && entry.appearance)?.appearance;
+  }
+
   get hasDayBadges(): boolean {
     return [...this.entries.values()].some((entry) => entry.status === "active" && typeof entry.module?.getDayBadge === "function");
   }
@@ -120,6 +127,7 @@ export class ExtensionRuntime {
     entry.controller.abort();
     for (const cleanup of [...entry.cleanups].reverse()) cleanup();
     entry.panels = [];
+    entry.appearance = undefined;
     try { entry.module?.dispose?.(); } catch (error) { console.warn(`[${entry.manifest.id}] 停用失败`, error); }
   }
 
@@ -231,6 +239,25 @@ export class ExtensionRuntime {
         setTimeout: (callback, ms) => timer(callback, ms, false),
       },
       ui: {
+        setAppearance: (appearance) => {
+          requireCapability("ui:appearance");
+          if (appearance === null) {
+            entry.appearance = undefined;
+          } else {
+            const { color, font, style, autoContrast } = appearance;
+            if ((color !== null && (typeof color !== "string" || !/^#[0-9a-f]{6}$/i.test(color)))
+              || !WIDGET_FONTS.includes(font) || !WIDGET_FONT_STYLES.includes(style)
+              || (autoContrast !== undefined && typeof autoContrast !== "boolean")) {
+              throw new Error("文字颜色或字体样式无效");
+            }
+            entry.appearance = Object.freeze({ color, font, style, ...(autoContrast === undefined ? {} : { autoContrast }) });
+          }
+          this.notify();
+        },
+        getLegacyTextColor: () => {
+          requireCapability("ui:appearance");
+          return this.host.getLegacyTextColor?.() ?? null;
+        },
         registerPanel: (panel) => {
           requireCapability("ui:panels");
           if (!/^[a-z0-9-]+$/.test(panel.id) || !panel.title?.trim() || typeof panel.mount !== "function"

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { ExtensionSlot } from "../extensions/ExtensionSlot";
 import { useExtensions } from "../extensions/ExtensionContext";
 import { exportTaskBackup, importTaskBackup, type TaskBackup } from "../lib/taskBackup";
+import { openSettingsMenu } from "../lib/settingsMenu";
 import type { AppData } from "../lib/types";
 import { APP_VERSION } from "../lib/version";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -132,6 +133,22 @@ export const CHINA_CITY_GROUPS: CityGroup[] = [
 
 function CityPicker() {
   const [isOpen, setIsOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!isOpen || !trigger.current || !menu.current) return;
+    const button = trigger.current;
+    const panel = menu.current;
+    const close = openSettingsMenu(button, panel);
+    const onOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !button.contains(event.target) && !panel.contains(event.target)) setIsOpen(false);
+    };
+    document.addEventListener("pointerdown", onOutside);
+    return () => {
+      close();
+      document.removeEventListener("pointerdown", onOutside);
+    };
+  }, [isOpen]);
   const [activeTab, setActiveTab] = useState("常用");
   const [search, setSearch] = useState("");
   const [locating, setLocating] = useState(false);
@@ -288,15 +305,14 @@ function CityPicker() {
         <span style={{ fontSize: 11, color: "var(--muted)" }}>真实城市：</span>
         <button
           type="button"
+          className="settings-select-trigger"
+          ref={trigger}
+          aria-expanded={isOpen}
+          aria-controls="settings-city-options"
           onClick={() => setIsOpen(!isOpen)}
           style={{
             fontSize: 11,
             padding: "2px 8px",
-            borderRadius: 6,
-            border: "1px solid rgba(120, 85, 65, 0.25)",
-            background: isOpen ? "rgba(196, 92, 62, 0.15)" : "var(--bg)",
-            color: "var(--text)",
-            cursor: "pointer",
             display: "inline-flex",
             alignItems: "center",
             gap: 4,
@@ -307,7 +323,6 @@ function CityPicker() {
           <span
             style={{
               fontSize: 8,
-              opacity: 0.6,
               transform: isOpen ? "rotate(180deg)" : "none",
               transition: "transform 0.15s ease",
             }}
@@ -319,12 +334,13 @@ function CityPicker() {
 
       {isOpen && (
         <div
+          id="settings-city-options"
+          className="settings-city-options settings-menu-surface"
+          ref={menu}
+          popover="manual"
+          data-contrast-surface=""
           style={{
-            marginTop: 6,
             padding: "7px 8px",
-            borderRadius: 7,
-            border: "1px solid rgba(120, 85, 65, 0.2)",
-            background: "rgba(196, 92, 62, 0.05)",
             display: "flex",
             flexDirection: "column",
             gap: 6,
@@ -373,7 +389,7 @@ function CityPicker() {
               fontSize: 11,
               borderRadius: 4,
               border: "1px solid rgba(120, 85, 65, 0.2)",
-              background: "var(--bg)",
+              background: "var(--surface)",
               color: "var(--text)",
               outline: "none",
             }}
@@ -479,7 +495,7 @@ function CityPicker() {
                           : "1px solid rgba(120, 85, 65, 0.15)",
                         background: isSelected
                           ? "rgba(196, 92, 62, 0.22)"
-                          : "var(--bg)",
+                          : "var(--surface)",
                         color: "var(--text)",
                         cursor: "pointer",
                         fontWeight: isSelected ? 600 : 400,
@@ -536,7 +552,8 @@ export function SettingsPanel({
   onFollowWallpaperTextChange,
   onClose,
 }: SettingsPanelProps) {
-  const { manifests, states, install, uninstall, setEnabled, busy, worldEvent, error } = useExtensions();
+  const { manifests, states, install, uninstall, setEnabled, busy, worldEvent, error, appearance } = useExtensions();
+  const hasCustomTextColor = appearance?.color != null || appearance?.autoContrast === true;
   const [backupBusy, setBackupBusy] = useState(false);
   const [backupStatus, setBackupStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [pendingUninstall, setPendingUninstall] = useState<{
@@ -550,6 +567,16 @@ export function SettingsPanel({
       if (pendingUninstall) {
         event.stopImmediatePropagation();
         setPendingUninstall(null);
+        return;
+      }
+      const openMenu = document.querySelector<HTMLButtonElement>(
+        '.settings-panel .settings-select-trigger[aria-expanded="true"]',
+      );
+      if (openMenu) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openMenu.click();
+        openMenu.focus();
         return;
       }
       onClose();
@@ -594,7 +621,7 @@ export function SettingsPanel({
             id="background-opacity"
             className="settings-slider"
             type="range"
-            min={20}
+            min={0}
             max={100}
             step={1}
             value={backgroundOpacity}
@@ -604,7 +631,7 @@ export function SettingsPanel({
           />
           <span className="settings-value">{backgroundOpacity}%</span>
         </div>
-        <p className="settings-hint">数值越低，背景越透明，可透出桌面壁纸。</p>
+        <p className="settings-hint">0% 时背景完全透明，文字仍会显示。</p>
         {browserDemo ? <p className="settings-hint">跟随系统壁纸配色仅桌面版支持。</p> : <div className="settings-toggle-row">
           <label className="settings-toggle">
             <input
@@ -617,8 +644,8 @@ export function SettingsPanel({
           <label className="settings-toggle">
             <input
               type="checkbox"
-              checked={followWallpaper && followWallpaperText}
-              disabled={!followWallpaper}
+              checked={followWallpaper && followWallpaperText && !hasCustomTextColor}
+              disabled={!followWallpaper || hasCustomTextColor}
               onChange={(event) =>
                 onFollowWallpaperTextChange(event.target.checked)
               }

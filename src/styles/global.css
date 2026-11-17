@@ -4,15 +4,81 @@
   --bg-rgb: 247, 243, 236;
   --bg-alpha: 1;
   --bg: rgba(var(--bg-rgb), var(--bg-alpha));
-  --text: #1c1a17;
-  --muted: #7a7468;
-  --sub-label: #9a7d68;
+  --surface: rgb(var(--bg-rgb));
+  --field-bg: rgba(247, 243, 236, calc(0.9 * var(--bg-alpha)));
+  --text: var(--custom-text, #1c1a17);
+  --muted: var(--custom-text, var(--wallpaper-muted, #7a7468));
+  --sub-label: var(--custom-text, var(--wallpaper-sub-label, #9a7d68));
+  --accent-text: var(--custom-text, var(--accent));
+  --text-edge: #fff;
   --accent: #c45c3e;
   --border: #e5dfd4;
   --shadow: 0 10px 28px rgba(28, 26, 23, 0.12);
   --radius: 12px;
-  --font-display: "Noto Serif SC", serif;
-  --font-body: "DM Sans", system-ui, sans-serif;
+  --font-display: var(--custom-font, "Noto Serif SC", serif);
+  --font-body: var(--custom-font, "DM Sans", system-ui, sans-serif);
+}
+
+:root[data-low-opacity] {
+  --muted: var(--custom-text, color-mix(in srgb, var(--wallpaper-muted, #7a7468), var(--text) 60%));
+  --sub-label: var(--custom-text, color-mix(in srgb, var(--wallpaper-sub-label, #9a7d68), var(--text) 60%));
+  --accent-text: var(--custom-text, color-mix(in srgb, var(--accent), var(--text) 45%));
+}
+
+:root[data-custom-text] {
+  --surface: color-mix(in srgb, var(--text-edge) 90%, rgb(var(--bg-rgb)));
+  --field-bg: color-mix(in srgb, var(--surface) calc(var(--bg-alpha) * 100%), transparent);
+}
+
+:root:not([data-auto-contrast]):is([data-low-opacity], [data-custom-text]) .widget-card {
+  text-shadow: 0 0 2px var(--text-edge),
+    0 0.7px var(--text-edge), 0 -0.7px var(--text-edge),
+    0.7px 0 var(--text-edge), -0.7px 0 var(--text-edge);
+}
+
+:root[data-low-opacity]:not([data-custom-text]):not([data-auto-contrast]) .widget-card {
+  --default-text-edge: rgba(255, 255, 255, 0.45);
+  text-shadow: 0 0.4px 0 var(--default-text-edge),
+    0 -0.4px 0 var(--default-text-edge),
+    0.4px 0 0 var(--default-text-edge), -0.4px 0 0 var(--default-text-edge);
+}
+
+:root[data-mixed-backdrop] .widget-card {
+  text-shadow: 0 0 1px var(--text-edge);
+}
+
+:root[data-auto-contrast] .title-bar {
+  --regional-text: var(--header-contrast-color);
+  --text-edge: var(--header-contrast-edge);
+  text-shadow: var(--header-contrast-shadow);
+}
+
+:root[data-auto-contrast] :is(.task-footer, .extension-slot-dashboard) {
+  --regional-text: var(--footer-contrast-color);
+  --text-edge: var(--footer-contrast-edge);
+  text-shadow: var(--footer-contrast-shadow);
+}
+
+:root[data-auto-contrast] :is(.title-bar, .task-footer, .extension-slot-dashboard) {
+  --text: var(--regional-text);
+  --muted: var(--regional-text);
+  --sub-label: var(--regional-text);
+  --accent-text: var(--regional-text);
+  --surface: color-mix(in srgb, var(--text-edge) 90%, rgb(var(--bg-rgb)));
+  --field-bg: color-mix(in srgb, var(--surface) calc(var(--bg-alpha) * 100%), transparent);
+  color: var(--regional-text);
+}
+
+:root[data-auto-contrast] .widget-card [data-spatial-contrast] {
+  --text: var(--spatial-color);
+  --muted: var(--spatial-color);
+  --sub-label: var(--spatial-color);
+  --accent-text: var(--spatial-color);
+  --text-edge: var(--spatial-edge);
+  --surface: color-mix(in srgb, var(--text-edge) 90%, rgb(var(--bg-rgb)));
+  --field-bg: color-mix(in srgb, var(--surface) calc(var(--bg-alpha) * 100%), transparent);
+  color: var(--spatial-color);
+  text-shadow: var(--spatial-shadow);
 }
 
 * {
@@ -37,6 +103,8 @@ body,
   overflow: hidden;
   overscroll-behavior: none;
   font-family: var(--font-body);
+  font-style: var(--custom-font-style, normal);
+  font-weight: var(--custom-weight, normal);
   color: var(--text);
 }
 
@@ -49,7 +117,8 @@ body::-webkit-scrollbar,
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -58,13 +127,15 @@ button {
   background: none;
   cursor: pointer;
   color: inherit;
+  text-shadow: inherit;
 }
 
 .widget-shell {
   width: 100%;
   height: 100%;
   max-width: 100%;
-  padding: 0;
+  /* Keep the frame inside the WebView's clipped edges during a resize. */
+  padding: 1px;
   position: relative;
   display: flex;
   align-items: stretch;
@@ -257,7 +328,7 @@ button {
   border: 1px solid rgba(229, 223, 212, 0.14);
   font-family: var(--font-body);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
   line-height: 1.35;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -272,7 +343,7 @@ button {
   margin: 0;
   font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
@@ -298,7 +369,7 @@ button {
 
 .title-bar-picker:hover {
   background: rgba(196, 92, 62, 0.1);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 @container widget (width < 360px) {
@@ -463,30 +534,34 @@ button {
 }
 
 .pin-button.floating {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .pin-button.floating .pin-icon {
-  transform: rotate(0deg);
-  transform-origin: center center;
-  filter: none;
+  transform: rotate(40deg);
 }
 
 .pin-button.desktop {
-  color: #9a9488;
+  color: var(--muted);
 }
 
-.pin-button.desktop .pin-icon {
-  transform: rotate(-42deg);
-  transform-origin: center center;
-  filter: grayscale(1);
+:root:not([data-auto-contrast]):is([data-low-opacity], [data-custom-text]) .pin-icon {
+  filter: drop-shadow(0 0 1px var(--text-edge));
+}
+
+:root[data-low-opacity]:not([data-custom-text]):not([data-auto-contrast]) .pin-icon {
+  filter: none;
+}
+
+:root[data-auto-contrast] .pin-icon {
+  filter: var(--spatial-icon-filter, var(--header-contrast-icon-filter, none));
 }
 
 .settings-button.active,
 .today-month-button.active,
 .long-term-button.active,
 .month-summary-button.active {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .calendar-grid {
@@ -580,7 +655,7 @@ button {
 
 .day-number {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
   line-height: 1;
 }
 
@@ -641,11 +716,12 @@ button {
   .day-badge-label {
     display: block;
     font-size: 7px;
-    font-weight: 600;
+    font-weight: var(--custom-weight, 600);
     line-height: 1;
     padding: 1px 2px;
     border-radius: 3px;
     color: #fff;
+    text-shadow: none;
   }
 
   .day-badge-rest .day-badge-label {
@@ -700,6 +776,10 @@ button {
   opacity: 0.32;
 }
 
+.day-cell.out-month[data-spatial-contrast] .day-cell-main {
+  opacity: 0.68;
+}
+
 .day-cell.out-month .day-badge {
   opacity: 0.9;
 }
@@ -734,14 +814,14 @@ button {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
   line-height: 1;
 }
 
 .back-arrow:hover,
 .back-chevron:hover {
   background: rgba(196, 92, 62, 0.1);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .date-picker-panel {
@@ -779,7 +859,7 @@ button {
 .picker-year-button {
   font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
   padding: 4px 6px;
   border-radius: 8px;
   text-align: center;
@@ -788,7 +868,7 @@ button {
 .picker-year-button:hover,
 .picker-close:hover {
   background: rgba(196, 92, 62, 0.1);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .picker-close {
@@ -811,7 +891,7 @@ button {
   padding: 8px 0;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
   background: rgba(196, 92, 62, 0.06);
 }
 
@@ -822,6 +902,7 @@ button {
 .picker-month-cell.active {
   background: var(--accent);
   color: #fff;
+  text-shadow: none;
 }
 
 .picker-day-section {
@@ -863,7 +944,7 @@ button {
   margin: 0;
   font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
 }
 
 .settings-section {
@@ -872,13 +953,13 @@ button {
   gap: 6px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(196, 92, 62, 0.06);
+  background: rgba(196, 92, 62, calc(0.06 * var(--bg-alpha)));
 }
 
 .settings-label {
   margin: 0;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
 }
 
 .settings-slider-row {
@@ -896,8 +977,8 @@ button {
 .settings-value {
   min-width: 36px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: var(--custom-weight, 600);
+  color: var(--accent-text);
   text-align: right;
 }
 
@@ -912,7 +993,7 @@ button {
   margin: 0;
   font-size: 11px;
   line-height: 1.35;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .settings-section-header {
@@ -927,7 +1008,7 @@ button {
   border-radius: 5px;
   padding: 1px 7px;
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: rgba(196, 92, 62, 0.1);
   cursor: pointer;
 }
@@ -937,7 +1018,7 @@ button {
 }
 
 .settings-action-button.danger {
-  color: #a34a3a;
+  color: var(--custom-text, #a34a3a);
 }
 
 .settings-ext-list {
@@ -977,7 +1058,7 @@ button {
 
 .settings-ext-name {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
 }
 
 .settings-ext-desc {
@@ -1001,6 +1082,122 @@ button {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
+}
+
+.settings-select-trigger {
+  color: var(--text);
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  text-shadow: inherit;
+  -webkit-app-region: no-drag;
+}
+
+.settings-select-trigger:focus-visible,
+.settings-select-trigger[aria-expanded="true"] {
+  border-color: var(--accent);
+}
+
+.settings-select-wrap {
+  position: relative;
+  justify-self: start;
+  max-width: 100%;
+}
+
+.settings-select-wrap select {
+  appearance: none;
+  padding: 2px 20px 2px 6px;
+}
+
+.settings-select-wrap::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: 7px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border: solid var(--text);
+  border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.settings-select-wrap option {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.settings-menu-surface {
+  --frost-tint: #f7f3ec;
+  --text: #211d17;
+  --muted: #51493f;
+  --surface: transparent;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  overflow: auto;
+  color: var(--text);
+  background: color-mix(in srgb, var(--frost-tint) 80%, var(--settings-menu-bg, transparent));
+  border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+  border-radius: 7px;
+  text-shadow: none;
+  backdrop-filter: blur(14px) saturate(115%);
+  scrollbar-width: thin;
+}
+
+.settings-menu-surface[data-dark-frost] {
+  --frost-tint: #211f1c;
+  --text: #f8f6f0;
+  --muted: #dfd8cc;
+  color-scheme: dark;
+}
+
+.settings-city-options { width: 280px; }
+
+.settings-choice {
+  min-width: 0;
+  justify-self: start;
+  max-width: 100%;
+}
+
+.settings-choice > .settings-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 7px;
+}
+
+.settings-choice > .settings-select-trigger::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.settings-choice-options:popover-open {
+  display: grid;
+  gap: 2px;
+  min-width: 80px;
+  padding: 3px;
+}
+
+.settings-choice-options button {
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-align: start;
+}
+
+.settings-choice-options button:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+}
+
+.settings-choice-options button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  font-weight: 600;
 }
 
 .settings-toggle:has(input:disabled) {
@@ -1138,11 +1335,20 @@ button {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0 8px;
-  background: rgba(247, 243, 236, 0.9);
+  background: var(--field-bg);
   outline: none;
   color: var(--text);
   font-size: 13px;
   line-height: 32px;
+}
+
+:root[data-custom-text] .widget-card :is(input, textarea)::placeholder {
+  color: var(--text);
+  opacity: 0.8;
+}
+
+:root[data-low-opacity] .widget-card :is(.task-add-input, .task-edit-input, .task-detail-input, .task-detail-textarea, .month-summary-textarea) {
+  text-shadow: inherit;
 }
 
 .task-edit-input:focus,
@@ -1188,7 +1394,7 @@ button {
   min-width: 72px;
   padding: 4px;
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
@@ -1222,7 +1428,7 @@ button {
 }
 
 .task-menu-item.danger {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .task-detail-panel {
@@ -1263,7 +1469,7 @@ button {
 .month-summary-stat-value {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
   line-height: 1.2;
 }
 
@@ -1279,7 +1485,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px;
-  background: rgba(247, 243, 236, 0.9);
+  background: var(--field-bg);
   outline: none;
   color: var(--text);
   font-size: 13px;
@@ -1311,7 +1517,7 @@ button {
 
 .long-term-stat-item strong {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: var(--custom-weight, 600);
   color: var(--text);
   font-size: 12px;
 }
@@ -1342,9 +1548,9 @@ button {
 }
 
 .long-term-filter-btn.active {
-  color: var(--accent);
+  color: var(--accent-text);
   background: rgba(196, 92, 62, 0.1);
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
 }
 
 .long-term-task-list {
@@ -1385,7 +1591,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0 8px;
-  background: rgba(247, 243, 236, 0.9);
+  background: var(--field-bg);
   outline: none;
   color: var(--text);
   font-size: 13px;
@@ -1400,7 +1606,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px;
-  background: rgba(247, 243, 236, 0.9);
+  background: var(--field-bg);
   outline: none;
   color: var(--text);
   font-size: 13px;
@@ -1474,7 +1680,7 @@ button {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -1486,7 +1692,7 @@ button {
 
 .task-detail-image-error {
   flex-shrink: 0;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 12px;
 }
 
@@ -1529,7 +1735,7 @@ button {
   gap: 6px;
   padding: 8px;
   border-radius: 10px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   max-width: min(148px, calc(100vw - 16px));
@@ -1586,7 +1792,7 @@ button {
 }
 
 .task-copy-from:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .task-copy-from:disabled {
@@ -1626,6 +1832,7 @@ button {
   border-radius: 8px;
   background: var(--accent);
   color: #fff;
+  text-shadow: none;
   flex-shrink: 0;
 }
 
@@ -1683,7 +1890,7 @@ button {
   padding: 14px 14px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
@@ -1702,8 +1909,8 @@ button {
 }
 
 .confirm-target {
-  color: var(--accent);
-  font-weight: 500;
+  color: var(--accent-text);
+  font-weight: var(--custom-weight, 500);
 }
 
 .confirm-actions {
@@ -1717,7 +1924,7 @@ button {
   padding: 7px 0;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--custom-weight, 500);
 }
 
 .confirm-btn.cancel {
@@ -1732,6 +1939,7 @@ button {
 .confirm-btn.danger {
   background: var(--accent);
   color: #fff;
+  text-shadow: none;
 }
 
 .confirm-btn.danger:hover {

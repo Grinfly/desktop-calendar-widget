@@ -38,6 +38,8 @@ export interface AppSettings {
   lastView: AppView;
   selectedDate: string;
   backgroundOpacity: number;
+  /** 旧版配色，只在文字外观扩展首次启用时读取。 */
+  textColor: string | null;
   showWorkRestBadges: boolean;
   followWallpaper: boolean;
   followWallpaperText: boolean;
@@ -57,6 +59,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastView: "calendar",
   selectedDate: "",
   backgroundOpacity: 100,
+  textColor: null,
   showWorkRestBadges: true,
   followWallpaper: true,
   followWallpaperText: false,
