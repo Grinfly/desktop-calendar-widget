@@ -525,6 +525,7 @@ function CityPicker() {
 
 interface SettingsPanelProps {
   browserDemo?: boolean;
+  smallBean?: { enabled: boolean; busy: boolean; error: string | null; setEnabled: (value: boolean) => Promise<boolean> };
   taskData: Pick<AppData, "tasks" | "longTermTasks">;
   onImportTaskBackup: (backup: TaskBackup) => void;
   backgroundOpacity: number;
@@ -540,6 +541,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({
   browserDemo = false,
+  smallBean,
   taskData,
   onImportTaskBackup,
   backgroundOpacity,
@@ -611,6 +613,18 @@ export function SettingsPanel({
       <div className="settings-toolbar">
         <h2 className="settings-title">设置</h2>
       </div>
+
+      {smallBean && (
+        <div className="settings-section">
+          <label className="settings-toggle">
+            <input type="checkbox" checked={smallBean.enabled} disabled={smallBean.busy}
+              onChange={(event) => void smallBean.setEnabled(event.target.checked)} />
+            小蚕豆模式
+          </label>
+          <p className="settings-hint">缩成蚕豆图标，点一下打开今天的待办。</p>
+          {smallBean.error && <p className="settings-error" role="status">{smallBean.error}</p>}
+        </div>
+      )}
 
       <div className="settings-section">
         <label className="settings-label" htmlFor="background-opacity">

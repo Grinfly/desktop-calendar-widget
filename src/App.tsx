@@ -8,6 +8,7 @@ import {
   toMonthKey,
 } from "./lib/dates";
 import { useDateTick } from "./hooks/useDateTick";
+import { useSmallBean } from "./hooks/useSmallBean";
 import { useTasks } from "./hooks/useTasks";
 import { CalendarGrid } from "./components/CalendarGrid";
 import { DatePickerPanel } from "./components/DatePickerPanel";
@@ -16,6 +17,7 @@ import { MonthSummaryPanel } from "./components/MonthSummaryPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { TaskList } from "./components/TaskList";
 import { ResizeHandles } from "./components/ResizeHandles";
+import { SmallBeanButton } from "./components/SmallBeanButton";
 import { TitleBar } from "./components/TitleBar";
 import { HolidayFx } from "./components/HolidayFx";
 import { WorldFx } from "./components/WorldFx";
@@ -28,6 +30,7 @@ type PickerMode = "month" | "date" | "copy" | null;
 function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnType<typeof useTasks> }) {
   useDateTick();
   const extensions = useExtensions();
+  const smallBean = useSmallBean(browserDemo, tasks.flush);
   const {
     data,
     loaded,
@@ -193,6 +196,24 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
     };
   }, [view, showSettings, showMonthSummary, showLongTermTasks, pickerMode, setCurrentMonth]);
 
+  const openTodayFromBean = async () => {
+    if (!await smallBean.setCollapsed(false)) return;
+    setPickerMode(null);
+    setShowSettings(false);
+    setShowMonthSummary(false);
+    setShowLongTermTasks(false);
+    setDetailTaskId(null);
+    setLongTermDetailTaskId(null);
+    const today = new Date();
+    setCurrentMonth(today);
+    selectDate(today);
+  };
+
+  if (smallBean.collapsed) {
+    return <SmallBeanButton disabled={!loaded || !extensionsLoaded || smallBean.busy}
+      error={smallBean.error} onOpen={() => void openTodayFromBean()} />;
+  }
+
   if (!loaded || !extensionsLoaded) {
     return (
       <div className="widget-shell loading">
@@ -229,6 +250,9 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
       ? openMonthSummary
       : undefined;
   const closeSettings = () => setShowSettings(false);
+  const collapseToBean = smallBean.enabled && !smallBean.busy
+    ? () => void smallBean.setCollapsed(true)
+    : undefined;
   const goToTodayMonth = () => {
     setCurrentMonth(getTodayMonth());
     setPickerMode(null);
@@ -239,6 +263,7 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
   const mainContent = showSettings ? (
     <SettingsPanel
       browserDemo={browserDemo}
+      smallBean={smallBean.available ? smallBean : undefined}
       taskData={data}
       onImportTaskBackup={importTaskBackup}
       backgroundOpacity={data.settings.backgroundOpacity ?? 100}
@@ -352,6 +377,7 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
         <HolidayFx kind={getDayAtmosphere(new Date())} />
         <WorldFx event={worldEvent} active={!showSettings} />
         <div className="widget-body">
+        {smallBean.error && !showSettings && <p className="small-bean-error" role="status">{smallBean.error}</p>}
         {showLongTermTasks ? (
           <>
             <TitleBar
@@ -361,6 +387,7 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
               settingsOpen={showSettings}
+              onCollapseToBean={collapseToBean}
               showMonthNav={false}
               detailOpen={Boolean(longTermDetailTaskId)}
               longTermTasksOpen={true}
@@ -378,6 +405,7 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
               settingsOpen={showSettings}
+              onCollapseToBean={collapseToBean}
               showMonthNav={false}
               dateKey={selectedDate}
               detailOpen={Boolean(detailTaskId)}
@@ -409,6 +437,7 @@ function AppShell({ browserDemo, tasks }: { browserDemo: boolean; tasks: ReturnT
               onPinToggle={() => void togglePinMode()}
               onOpenSettings={openSettings}
               settingsOpen={showSettings}
+              onCollapseToBean={collapseToBean}
               longTermTasksOpen={false}
               onOpenLongTermTasks={openLongTermTasks}
               onBack={

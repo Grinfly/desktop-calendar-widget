@@ -16,6 +16,7 @@ interface TitleBarProps {
   onPinToggle: () => void;
   onOpenSettings: () => void;
   settingsOpen?: boolean;
+  onCollapseToBean?: () => void;
   onOpenPicker?: () => void;
   onDoubleClick?: () => void;
   showMonthNav?: boolean;
@@ -37,6 +38,7 @@ export function TitleBar({
   onPinToggle,
   onOpenSettings,
   settingsOpen = false,
+  onCollapseToBean,
   onOpenPicker,
   onDoubleClick,
   showMonthNav = true,
@@ -172,6 +174,13 @@ export function TitleBar({
           />
         ) : null}
         <PinButton mode={pinMode} onToggle={onPinToggle} simulated={browserDemo} />
+        {onCollapseToBean && (
+          <Tooltip content="收起成小蚕豆">
+            <button type="button" className="nav-button" onClick={onCollapseToBean}>
+              <span aria-hidden="true">−</span>
+            </button>
+          </Tooltip>
+        )}
         <SettingsButton active={settingsOpen} onOpen={onOpenSettings} />
       </div>
     </header>

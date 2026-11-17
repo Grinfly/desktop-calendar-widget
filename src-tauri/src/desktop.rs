@@ -1,3 +1,32 @@
+pub fn screen_to_window_position(
+    window: &tauri::WebviewWindow,
+    x: i32,
+    y: i32,
+) -> tauri::Result<tauri::PhysicalPosition<i32>> {
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::{HWND, POINT};
+        use windows::Win32::Graphics::Gdi::ScreenToClient;
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetAncestor, GetWindowLongPtrW, GA_PARENT, GWL_STYLE, WS_CHILD,
+        };
+        let hwnd = HWND(window.hwnd()?.0 as _);
+        if unsafe { GetWindowLongPtrW(hwnd, GWL_STYLE) } as u32 & WS_CHILD.0 != 0 {
+            let parent = unsafe { GetAncestor(hwnd, GA_PARENT) };
+            if !parent.0.is_null() {
+                let mut pos = POINT { x, y };
+                if !unsafe { ScreenToClient(parent, &mut pos) }.as_bool() {
+                    return Err(std::io::Error::last_os_error().into());
+                }
+                return Ok(tauri::PhysicalPosition::new(pos.x, pos.y));
+            }
+        }
+    }
+    #[cfg(not(windows))]
+    let _ = window;
+    Ok(tauri::PhysicalPosition::new(x, y))
+}
+
 #[cfg(target_os = "windows")]
 mod imp {
     use std::ffi::c_void;

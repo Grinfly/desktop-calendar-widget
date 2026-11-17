@@ -2,6 +2,7 @@ mod desktop;
 mod extensions;
 mod holidays;
 mod image_preview;
+mod small_bean;
 mod storage;
 mod wallpaper;
 
@@ -16,6 +17,7 @@ use tauri::{
 };
 
 static CURRENT_PIN_MODE: Mutex<Option<String>> = Mutex::new(None);
+static DATA_WRITES: Mutex<()> = Mutex::new(());
 
 #[derive(Debug, Deserialize)]
 struct Size {
@@ -162,6 +164,7 @@ fn apply_pin_mode(window: &tauri::WebviewWindow, mode: &str) -> Result<(), Strin
 }
 
 fn persist_pin_mode(mode: &str) -> Result<(), String> {
+    let _guard = DATA_WRITES.lock().map_err(|e| e.to_string())?;
     let raw = storage::load_data()?;
     let mut value: serde_json::Value =
         serde_json::from_str(&raw).map_err(|e| e.to_string())?;
@@ -247,6 +250,10 @@ fn apply_window_bounds(window: &tauri::WebviewWindow, x: i32, y: i32, width: u32
 }
 
 fn ensure_window_on_screen(window: &tauri::WebviewWindow) {
+    if small_bean::is_collapsed() {
+        small_bean::ensure_on_screen(window);
+        return;
+    }
     let Some(pos) = window.outer_position().ok() else {
         apply_window_bounds(
             window,
@@ -311,7 +318,7 @@ fn window_is_practically_visible(window: &tauri::WebviewWindow) -> bool {
         return false;
     };
     is_plausible_position(pos.x, pos.y)
-        && is_plausible_size(size.width, size.height)
+        && (small_bean::is_collapsed() || is_plausible_size(size.width, size.height))
         && bounds_visible_on_monitors(
             &collect_monitor_rects(window),
             pos.x,
@@ -336,6 +343,7 @@ fn restore_window_state(app: &tauri::AppHandle) -> Result<(), String> {
         data.settings.size.width,
         data.settings.size.height,
     );
+    small_bean::restore(&window);
     apply_pin_mode(&window, &data.settings.pin_mode)?;
     apply_window_rounded_clip(&window);
 
@@ -391,12 +399,28 @@ fn apply_window_rounded_clip(window: &tauri::WebviewWindow) {
 
 #[tauri::command]
 fn load_data() -> Result<String, String> {
+    let _guard = DATA_WRITES.lock().map_err(|e| e.to_string())?;
     storage::load_data()
 }
 
 #[tauri::command]
 fn save_data(json: String) -> Result<(), String> {
-    storage::save_data(json)
+    let _guard = DATA_WRITES.lock().map_err(|e| e.to_string())?;
+    let mut next = serde_json::from_str::<serde_json::Value>(&json).map_err(|e| e.to_string())?;
+    if let Ok(stored) = serde_json::from_str::<serde_json::Value>(&storage::load_data()?) {
+        preserve_saved_bounds(&stored, &mut next);
+    }
+    storage::save_data(serde_json::to_string_pretty(&next).map_err(|e| e.to_string())?)
+}
+
+fn preserve_saved_bounds(stored: &serde_json::Value, next: &mut serde_json::Value) {
+    if let Some(settings) = next.get_mut("settings").and_then(serde_json::Value::as_object_mut) {
+        for key in ["position", "size"] {
+            if let Some(value) = stored.get("settings").and_then(|current| current.get(key)) {
+                settings.insert(key.to_string(), value.clone());
+            }
+        }
+    }
 }
 
 #[tauri::command]
@@ -415,6 +439,9 @@ async fn save_window_bounds(window: tauri::WebviewWindow) -> Result<(), String> 
     if window.is_minimized().unwrap_or(false) || !window.is_visible().unwrap_or(false) {
         return Ok(());
     }
+    if small_bean::handle_bounds(&window) {
+        return Ok(());
+    }
 
     let position = window.outer_position().map_err(|e| e.to_string())?;
     let size = window.outer_size().map_err(|e| e.to_string())?;
@@ -423,18 +450,23 @@ async fn save_window_bounds(window: tauri::WebviewWindow) -> Result<(), String> 
         return Ok(());
     }
 
+    persist_window_bounds(position.x, position.y, size.width, size.height)
+}
+
+fn persist_window_bounds(x: i32, y: i32, width: u32, height: u32) -> Result<(), String> {
+    let _guard = DATA_WRITES.lock().map_err(|e| e.to_string())?;
     let raw = storage::load_data()?;
     let mut value: serde_json::Value =
         serde_json::from_str(&raw).map_err(|e| e.to_string())?;
 
     if let Some(settings) = value.get_mut("settings") {
         settings["position"] = serde_json::json!({
-            "x": position.x,
-            "y": position.y
+            "x": x,
+            "y": y
         });
         settings["size"] = serde_json::json!({
-            "width": size.width,
-            "height": size.height
+            "width": width,
+            "height": height
         });
     }
 
@@ -453,6 +485,9 @@ pub fn run() {
             image_preview::load_task_image_preview,
             set_pin_mode,
             save_window_bounds,
+            small_bean::get_small_bean_state,
+            small_bean::set_small_bean_mode,
+            small_bean::set_small_bean_collapsed,
             extensions::list_extensions,
             extensions::install_extension,
             extensions::uninstall_extension,
@@ -618,6 +653,21 @@ mod tests {
         assert!(!is_plausible_size(199, 34));
         assert!(is_plausible_size(300, 360));
         assert_eq!(clamp_window_size(199, 34), (260, 300));
+    }
+
+    #[test]
+    fn saving_tasks_does_not_restore_stale_window_geometry() {
+        let stored = serde_json::json!({ "settings": {
+            "position": {"x": -200, "y": 64}, "size": {"width": 395, "height": 422}
+        }});
+        let mut next = serde_json::json!({ "settings": {
+            "position": {"x": 120, "y": 80}, "size": {"width": 300, "height": 360},
+            "backgroundOpacity": 17
+        }});
+        preserve_saved_bounds(&stored, &mut next);
+        assert_eq!(next["settings"]["position"], stored["settings"]["position"]);
+        assert_eq!(next["settings"]["size"], stored["settings"]["size"]);
+        assert_eq!(next["settings"]["backgroundOpacity"], 17);
     }
 
     #[test]
